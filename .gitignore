@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+*.log
+.env
+.env.local
+.env*.local
+.DS_Store
+.idea/
+.vercel/
+coverage/
+.superpowers/
+drizzle/meta/_journal.json.lock

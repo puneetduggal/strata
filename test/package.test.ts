@@ -21,6 +21,47 @@ describe("SOFTWARE_PACKAGE structural invariants", () => {
     expect(dependsOn?.kinds).toHaveLength(6);
   });
 
+  test("relation triples match canonical type/sourceType/targetType/inverse", () => {
+    const expected = [
+      { type: "PART_OF", sourceType: "Feature", targetType: "System", inverse: "HAS_FEATURE" },
+      { type: "SPECIFIES", sourceType: "Requirement", targetType: "Feature", inverse: "SPECIFIED_BY" },
+      { type: "IMPLEMENTS", sourceType: "Service", targetType: "Requirement", inverse: "IMPLEMENTED_BY" },
+      { type: "DEPENDS_ON", sourceType: "Service", targetType: "Service", inverse: "DEPENDED_ON_BY" },
+      { type: "USES", sourceType: "Service", targetType: "Datastore", inverse: "USED_BY" },
+      { type: "VERIFIES", sourceType: "Test", targetType: "Requirement", inverse: "VERIFIED_BY" },
+      { type: "VALIDATES", sourceType: "LoadTestResult", targetType: "Requirement", inverse: "VALIDATED_BY" },
+      { type: "AFFECTS", sourceType: "Decision", targetType: "Service", inverse: "AFFECTED_BY" },
+      { type: "OWNS", sourceType: "Person", targetType: "Service", inverse: "OWNED_BY" },
+      { type: "MENTIONS", sourceType: "chunk", targetType: "*", inverse: "MENTIONED_IN" },
+    ];
+    const actual = SOFTWARE_PACKAGE.relations.map((r) => ({
+      type: r.type,
+      sourceType: r.sourceType,
+      targetType: r.targetType,
+      inverse: r.inverse,
+    }));
+    expect(actual).toEqual(expected);
+  });
+
+  test("each CQ kind matches the canonical id->kind map", () => {
+    const expectedKinds: Record<string, string> = {
+      Q1: "coverage_gap",
+      Q2: "coverage_gap",
+      Q3: "impact",
+      Q4: "trace",
+      Q5: "lookup",
+      Q6: "reconcile",
+      Q7: "rationale",
+      Q8: "lookup",
+      Q9: "impact",
+      Q10: "impact",
+    };
+    const actualKinds = Object.fromEntries(
+      SOFTWARE_PACKAGE.competencyQuestions.map((cq) => [cq.id, cq.kind]),
+    );
+    expect(actualKinds).toEqual(expectedKinds);
+  });
+
   test("every CQ template is unique", () => {
     const templates = SOFTWARE_PACKAGE.competencyQuestions.map((cq) => cq.template);
     expect(new Set(templates).size).toBe(templates.length);

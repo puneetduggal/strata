@@ -11,7 +11,7 @@ export default defineConfig({
     include: ["test/**/*.test.ts"],
     // Integration tests truncate the shared DB + assert global answers — they run alone via
     // vitest.integration.config.ts and MUST stay out of the parallel, no-truncate unit pass.
-    exclude: ["**/node_modules/**", "**/dist/**", "**/.{idea,git,cache,output,temp}/**", "test/integration.test.ts"],
+    exclude: ["**/node_modules/**", "**/dist/**", "**/.{idea,git,cache,output,temp}/**", "test/integration.test.ts", "test/provenance-integrity.test.ts"],
     testTimeout: 30_000,
     setupFiles: ["dotenv/config"],
   },

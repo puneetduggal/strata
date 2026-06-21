@@ -1,7 +1,5 @@
 import "dotenv/config";
 import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import { eq } from "drizzle-orm";
 
@@ -19,6 +17,7 @@ import { eq } from "drizzle-orm";
 
 import { hashRequest, recordReplay, mode, flush } from "./record-replay";
 import { sameSet, sameOrdered } from "./eval/scorecard";
+import { BUNDLE_DIR, LABELS_PATH, canonicalizeUser, ingestFile, truncateKnowledge } from "./integration-helpers";
 
 // Route the three non-deterministic seams through the cassette. The factory pulls the REAL impl via
 // importOriginal() and wraps each call in recordReplay (live | record | replay per env). The eval
@@ -34,30 +33,6 @@ vi.mock("@/lib/llm/claude", async (importOriginal) => {
   };
 });
 
-// Canonicalize a prompt before hashing so the cassette key is invariant to the ONE volatile input
-// in the pipeline's LLM prompts: the link stage lists candidate-partner entities via an unordered
-// `SELECT ... FROM entity_index`, so Postgres heap order (affected by resolve-stage UPDATEs / vacuum)
-// can reorder those lines run-to-run for the SAME logical graph. The model's answer (the set of
-// proposed edges) does not depend on that ordering, so sorting the contiguous run of partner lines
-// (`- (Type) label`) maps every ordering to one stable cassette entry — deterministic offline replay
-// without touching pipeline code. (All other prompts are pure functions of doc text and are unaffected.)
-function canonicalizeUser(user: string): string {
-  const lines = user.split("\n");
-  const isPartner = (l: string) => /^- \([^)]+\) /.test(l);
-  const out: string[] = [];
-  for (let i = 0; i < lines.length; ) {
-    if (isPartner(lines[i])) {
-      let j = i;
-      while (j < lines.length && isPartner(lines[j])) j++;
-      out.push(...lines.slice(i, j).sort());
-      i = j;
-    } else {
-      out.push(lines[i]);
-      i++;
-    }
-  }
-  return out.join("\n");
-}
 vi.mock("@/lib/embed/voyage", async (importOriginal) => {
   const real = await importOriginal<typeof import("@/lib/embed/voyage")>();
   // Key PER TEXT so a different batching of the same strings reuses the cached vectors. We resolve
@@ -85,14 +60,9 @@ import {
   decisions,
   persons,
 } from "@/lib/db/schema";
-import { extractText } from "@/lib/ingest/extract-text";
 import { advance, relinkAll } from "@/lib/pipeline/run";
 import { runCQ, type EdgeRef } from "@/lib/query/templates";
 import { locateSpan } from "@/lib/provenance/locate";
-
-const ROOT = path.resolve(fileURLToPath(import.meta.url), "../..");
-const BUNDLE_DIR = path.join(ROOT, "fixtures", "software-bundle");
-const LABELS_PATH = path.join(ROOT, "fixtures", "labels.json");
 
 const norm = (s: string) => s.trim().replace(/\s+/g, " ").toLowerCase();
 
@@ -239,26 +209,6 @@ async function assertCQ(template: string, rows: any[], gold: any): Promise<void>
   }
 }
 
-// Ingest one file through the full pipeline to a terminal status (mirrors the harness loop).
-async function ingestFile(file: string): Promise<{ id: number; status: string }> {
-  const buf = fs.readFileSync(path.join(BUNDLE_DIR, file));
-  const { rawText } = await extractText(buf, "text/plain");
-  const [doc] = await db
-    .insert(documents)
-    .values({ filename: file, mimeType: "text/plain", rawText, status: "ingested" })
-    .returning();
-  let prev = "";
-  let status = "";
-  for (let i = 0; i < 12; i++) {
-    const res = await advance(doc.id);
-    status = res.status;
-    if (status === prev) break;
-    prev = status;
-    if (status === "ready" || status === "failed" || status === "unrouted") break;
-  }
-  return { id: doc.id, status };
-}
-
 // ---------------------------------------------------------------------------
 // Suite
 // ---------------------------------------------------------------------------
@@ -268,13 +218,7 @@ const resultByFile = new Map<string, { id: number; status: string }>();
 beforeAll(async () => {
   // Truncate the shared knowledge/substrate tables so GLOBAL CQ answers reflect exactly this bundle
   // (same set as the harness's truncateAll). Isolated to this serial config.
-  await rawSql`
-    TRUNCATE TABLE
-      documents, chunks,
-      systems, features, requirements, services, datastores, tests, load_test_results, decisions, persons,
-      edges, attribute_provenance, entity_index, jobs
-    RESTART IDENTITY
-  `;
+  await truncateKnowledge();
   for (const file of bundleFiles) {
     resultByFile.set(file, await ingestFile(file));
   }

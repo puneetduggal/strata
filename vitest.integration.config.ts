@@ -12,7 +12,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["test/integration.test.ts"],
+    include: ["test/integration.test.ts", "test/provenance-integrity.test.ts"],
     testTimeout: 60_000,
     setupFiles: ["dotenv/config"],
     // Serial / single-process: fileParallelism:false forces maxWorkers to 1 (Vitest 4), so the one

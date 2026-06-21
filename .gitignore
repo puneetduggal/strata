@@ -11,5 +11,6 @@ build/
 .idea/
 .vercel/
 coverage/
+*.tsbuildinfo
 .superpowers/
 drizzle/meta/_journal.json.lock

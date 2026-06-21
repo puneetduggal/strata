@@ -10,8 +10,6 @@ export function locateSpan(rawText: string, snippet: string) {
   // map normalized index back: re-scan rawText counting normalized chars
   let raw = 0, normCount = 0, start = -1;
   const target = norm(s).length;
-  const normRaw = norm(rawText);
-  void normRaw;
   for (; raw < rawText.length; raw++) {
     const isWs = /\s/.test(rawText[raw]);
     const prevWs = raw > 0 && /\s/.test(rawText[raw - 1]);

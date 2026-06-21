@@ -1,22 +1,9 @@
 import { NextResponse } from "next/server";
-import { runCQ } from "@/lib/query/templates";
+import { runCQ, isKnownCQ } from "@/lib/query/templates";
 
 // The deterministic-query gateway: POST {cq, params} → runCQ(cq, params) → {rows, provenance}.
 // `cq` must be a known template id; anything else (or a non-JSON body / missing cq) → 400.
-
-// Whitelist of valid template ids (must match the dispatch table in lib/query/templates.ts).
-const KNOWN_CQ = new Set([
-  "requirements_without_test",
-  "services_coverage_gaps",
-  "service_blast_radius",
-  "feature_chain",
-  "service_datastore",
-  "loadtest_vs_target",
-  "service_decisions",
-  "service_owner",
-  "feature_blast_radius",
-  "dependency_path",
-]);
+// The allowlist is derived from the TEMPLATES dispatch table (via isKnownCQ) so it can't drift.
 
 export async function POST(req: Request) {
   let body: { cq?: unknown; params?: unknown };
@@ -27,7 +14,7 @@ export async function POST(req: Request) {
   }
 
   const cq = body?.cq;
-  if (typeof cq !== "string" || !KNOWN_CQ.has(cq)) {
+  if (typeof cq !== "string" || !isKnownCQ(cq)) {
     return NextResponse.json({ error: `unknown query template: ${String(cq)}` }, { status: 400 });
   }
 

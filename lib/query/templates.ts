@@ -439,6 +439,12 @@ const TEMPLATES: Record<string, (p: Record<string, unknown>) => Promise<CQResult
   dependency_path: dependencyPath,
 };
 
+// The known template ids, derived from TEMPLATES so the route's allowlist can never drift
+// from the dispatch table (single source of truth).
+export function isKnownCQ(id: string): boolean {
+  return id in TEMPLATES;
+}
+
 export async function runCQ(templateId: string, params: Record<string, unknown>): Promise<CQResult> {
   const impl = TEMPLATES[templateId];
   if (!impl) throw new Error(`runCQ: unknown template "${templateId}"`);

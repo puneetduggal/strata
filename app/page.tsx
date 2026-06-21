@@ -11,12 +11,26 @@ export default function Home() {
             Documents to knowledge graph — live processing status.
           </p>
         </div>
-        <Link
-          href="/upload"
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          Upload
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/ask"
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Ask
+          </Link>
+          <Link
+            href="/table"
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Entities
+          </Link>
+          <Link
+            href="/upload"
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            Upload
+          </Link>
+        </div>
       </div>
       <ProcessingDashboard />
     </main>

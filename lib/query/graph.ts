@@ -1,5 +1,6 @@
 import { rawSql } from "@/lib/db/client";
 import { runCQ } from "@/lib/query/templates";
+import { SOFTWARE_PACKAGE } from "@/lib/packages/software";
 
 // Task 14 — the traceability subgraph for one System.
 //
@@ -235,4 +236,87 @@ export async function getSystemGraph(systemId: number): Promise<SystemGraph> {
   ];
 
   return { system, nodes, edges: edgeRows.map(toGraphEdge) };
+}
+
+// ---------------------------------------------------------------------------
+// Task 18 — list entities of one type with field-level provenance (for the faceted table).
+//
+// For a given entity type we read every row of its typed table, then overlay the
+// `attribute_provenance` rows (joined by entityType + entityId) so each field carries the doc
+// span it was extracted from. The table UI uses that span to link a cell to
+// /doc/{documentId}?start&end. The type name is validated against the package's entityTypes
+// (the same registry the rest of the app uses) — an unknown type throws (the route maps it to 400).
+// ---------------------------------------------------------------------------
+export type EntityFieldValue = {
+  value: string;
+  documentId?: number;
+  charStart?: number;
+  charEnd?: number;
+};
+
+export type EntityRow = {
+  id: number;
+  label: string;
+  fields: Record<string, EntityFieldValue>;
+};
+
+// snake_case (postgres-js) → the camelCase field names the extractor/provenance use.
+function toCamel(s: string): string {
+  return s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+}
+
+export async function listEntities(type: string): Promise<EntityRow[]> {
+  const def = SOFTWARE_PACKAGE.entityTypes.find((e) => e.type === type);
+  if (!def) throw new Error(`listEntities: unknown entity type "${type}"`);
+
+  // The typed entity table (table name is from the trusted package registry, never user input).
+  const entities = (await rawSql`
+    SELECT * FROM ${rawSql(def.table)} ORDER BY id
+  `) as Record<string, any>[];
+  if (entities.length === 0) return [];
+
+  const ids = entities.map((e) => e.id as number);
+
+  // Provenance spans for these entities, keyed by (entityId, field).
+  const prov = (await rawSql`
+    SELECT entity_id, field, value, document_id, char_start, char_end
+    FROM attribute_provenance
+    WHERE entity_type = ${type} AND entity_id = ANY(${ids}::int[])
+  `) as Array<{
+    entity_id: number;
+    field: string;
+    value: string | null;
+    document_id: number;
+    char_start: number;
+    char_end: number;
+  }>;
+
+  const provByEntity = new Map<number, Map<string, (typeof prov)[number]>>();
+  for (const p of prov) {
+    let m = provByEntity.get(p.entity_id);
+    if (!m) provByEntity.set(p.entity_id, (m = new Map()));
+    m.set(p.field, p); // one span per field; later rows for the same field win (deterministic by query order)
+  }
+
+  // Columns to surface: every non-bookkeeping column on the typed table.
+  const SKIP = new Set(["id", "package_id"]);
+
+  return entities.map((e) => {
+    const provFields = provByEntity.get(e.id) ?? new Map();
+    const fields: Record<string, EntityFieldValue> = {};
+    for (const col of Object.keys(e)) {
+      if (SKIP.has(col)) continue;
+      const camel = toCamel(col);
+      const raw = e[col];
+      if (raw === null || raw === undefined) continue;
+      const p = provFields.get(camel) ?? provFields.get(col);
+      fields[camel] = {
+        value: String(raw),
+        ...(p
+          ? { documentId: p.document_id, charStart: p.char_start, charEnd: p.char_end }
+          : {}),
+      };
+    }
+    return { id: e.id as number, label: String(e.label), fields };
+  });
 }

@@ -62,5 +62,7 @@ export async function classifyDoc(documentId: number): Promise<void> {
     })
     .where(eq(documents.id, documentId));
 
-  await markDoc(documentId, c.domain === "software_dev" ? "classified" : "unrouted");
+  // Every doc — software or not — becomes "classified". index runs for ALL docs;
+  // the unrouted decision (off-domain → graph-less substrate) happens after index.
+  await markDoc(documentId, "classified");
 }

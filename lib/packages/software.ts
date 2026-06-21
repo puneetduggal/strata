@@ -1,2 +1,50 @@
-// Stub — replaced by Task 6
-export const SOFTWARE_PACKAGE = { id: "software_dev" };
+import type { GraphPackage } from "./types";
+export const SOFTWARE_PACKAGE: GraphPackage = {
+  id: "software_dev",
+  docTypes: ["PRD", "HLD", "LLD", "ARD", "ADR", "impl_plan", "load_test_report"],
+  // §6d: doc-type → entity types that doc is the primary source for (drives Task 9 extraction)
+  docTypeSources: {
+    PRD: ["System", "Feature", "Requirement"],
+    HLD: ["System", "Service", "Datastore", "Decision", "Person"],
+    ARD: ["System", "Service", "Datastore", "Decision", "Person"],
+    LLD: ["Service", "Datastore", "Person"],
+    ADR: ["Decision"],
+    impl_plan: ["Service", "Requirement"],
+    load_test_report: ["LoadTestResult"],
+  },
+  entityTypes: [
+    { type: "System", table: "systems", searchFields: ["label", "description"] },
+    { type: "Feature", table: "features", searchFields: ["label", "description"] },
+    { type: "Requirement", table: "requirements", searchFields: ["label", "text"] },
+    { type: "Service", table: "services", searchFields: ["label", "description"] },
+    { type: "Datastore", table: "datastores", searchFields: ["label", "purpose"] },
+    { type: "Test", table: "tests", searchFields: ["label", "description"] },
+    { type: "LoadTestResult", table: "load_test_results", searchFields: ["label", "scenario"] },
+    { type: "Decision", table: "decisions", searchFields: ["label", "rationale"] },
+    { type: "Person", table: "persons", searchFields: ["label", "role"] },
+  ],
+  relations: [
+    { type: "PART_OF", inverse: "HAS_FEATURE", sourceType: "Feature", targetType: "System" },
+    { type: "SPECIFIES", inverse: "SPECIFIED_BY", sourceType: "Requirement", targetType: "Feature" },
+    { type: "IMPLEMENTS", inverse: "IMPLEMENTED_BY", sourceType: "Service", targetType: "Requirement" },
+    { type: "DEPENDS_ON", inverse: "DEPENDED_ON_BY", sourceType: "Service", targetType: "Service", kinds: ["CALLS", "CONSUMES_EVENT", "READS_FROM", "USES_LIBRARY", "SHARES_DATA", "CONFIG"] },
+    { type: "USES", inverse: "USED_BY", sourceType: "Service", targetType: "Datastore" },
+    { type: "VERIFIES", inverse: "VERIFIED_BY", sourceType: "Test", targetType: "Requirement" },
+    { type: "VALIDATES", inverse: "VALIDATED_BY", sourceType: "LoadTestResult", targetType: "Requirement" },
+    { type: "AFFECTS", inverse: "AFFECTED_BY", sourceType: "Decision", targetType: "Service" },
+    { type: "OWNS", inverse: "OWNED_BY", sourceType: "Person", targetType: "Service" },
+    { type: "MENTIONS", inverse: "MENTIONED_IN", sourceType: "chunk", targetType: "*" },
+  ],
+  competencyQuestions: [
+    { id: "Q1", question: "Which requirements have no verifying test?", kind: "coverage_gap", template: "requirements_without_test" },
+    { id: "Q2", question: "Which services have no design doc / no load test?", kind: "coverage_gap", template: "services_coverage_gaps" },
+    { id: "Q3", question: "What depends on Service X / what breaks if it changes?", kind: "impact", template: "service_blast_radius" },
+    { id: "Q4", question: "Show the PRD→LLD→impl→load-test chain for Feature F", kind: "trace", template: "feature_chain" },
+    { id: "Q5", question: "What datastore does Service X use?", kind: "lookup", template: "service_datastore" },
+    { id: "Q6", question: "Did the load test meet the PRD target?", kind: "reconcile", template: "loadtest_vs_target" },
+    { id: "Q7", question: "What decisions affected Service X, and why?", kind: "rationale", template: "service_decisions" },
+    { id: "Q8", question: "Who owns Service X?", kind: "lookup", template: "service_owner" },
+    { id: "Q9", question: "If Feature F changes, what is the full blast radius?", kind: "impact", template: "feature_blast_radius" },
+    { id: "Q10", question: "How does Service X transitively depend on Service Z?", kind: "impact", template: "dependency_path" },
+  ],
+};

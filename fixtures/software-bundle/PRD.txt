@@ -1,0 +1,8 @@
+Product Requirements Document: Order Service
+
+Overview
+The Order Service handles checkout and order lifecycle for the storefront.
+
+Requirements
+REQ-1: The system must handle 10k requests per second at peak load.
+REQ-2: Order confirmation emails must be sent within 30 seconds of checkout.

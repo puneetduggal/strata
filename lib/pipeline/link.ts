@@ -183,6 +183,7 @@ export async function linkEntity(entity: EntityRef, documentId: number): Promise
       SELECT entity_type, label
       FROM entity_index
       WHERE entity_type = ${pt}
+      ORDER BY label
     `) as Array<{ entity_type: string; label: string }>;
     for (const r of rows) partners.push({ entityType: r.entity_type, label: r.label });
   }

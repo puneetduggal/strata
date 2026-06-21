@@ -1,0 +1,20 @@
+Jane Doe
+Senior Software Engineer
+jane.doe@example.com | San Francisco, CA
+
+Summary
+Backend engineer with 8 years building distributed systems and payment platforms.
+
+Experience
+Staff Engineer, Acme Payments (2021–present)
+- Led the migration of the checkout service to an event-driven architecture.
+- Mentored a team of five engineers.
+
+Software Engineer, Globex (2017–2021)
+- Built the order fulfillment pipeline serving 2M orders/day.
+
+Education
+B.S. Computer Science, State University (2013–2017)
+
+Skills
+Go, TypeScript, PostgreSQL, Kafka, Kubernetes, AWS

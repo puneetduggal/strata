@@ -18,7 +18,9 @@ const STATUS_TO_NEXT_STAGE: Record<string, Stage> = {
   indexed: "extract",
   extracted: "resolve",
   resolved: "link",
-  linked: "done",
+  // "ready" is the terminal "graph queryable" state: no further stage to run. (The link stage
+  // lands a software doc directly on "ready"; the old "linked" status no longer occurs.)
+  ready: "done",
 };
 
 // The status to set after a stage completes successfully.
@@ -27,7 +29,9 @@ export const STAGE_TO_DONE_STATUS: Partial<Record<Stage, DocStatus>> = {
   index: "indexed",
   extract: "extracted",
   resolve: "resolved",
-  link: "linked",
+  // link lands on "ready" (terminal "graph queryable" state the UI/integration test expects),
+  // not "linked" — there is no "linked"→next handler, so a doc would otherwise stall.
+  link: "ready",
 };
 
 export function nextStage(current: Stage): Stage {

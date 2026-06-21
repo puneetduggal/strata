@@ -1,8 +1,24 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { documents } from "@/lib/db/schema";
+import {
+  documents,
+  attributeProvenance,
+  entityIndex,
+  systems,
+  features,
+  requirements,
+  services,
+  datastores,
+  tests,
+  loadTestResults,
+  decisions,
+  persons,
+} from "@/lib/db/schema";
 import { classifyDoc } from "./classify";
 import { indexDoc } from "./index";
+import { extractDoc } from "./extract";
+import { resolveDoc } from "./resolve";
+import { linkEntity } from "./link";
 import {
   nextStageForStatus,
   setStatus,
@@ -11,10 +27,58 @@ import {
   type Stage,
 } from "./jobs";
 
-// Stage handlers implemented so far. classify/index set documents.status themselves.
+// Package type name → typed table (for the label fallback when an entity has no entity_index row).
+const TABLES_BY_TYPE = {
+  System: systems,
+  Feature: features,
+  Requirement: requirements,
+  Service: services,
+  Datastore: datastores,
+  Test: tests,
+  LoadTestResult: loadTestResults,
+  Decision: decisions,
+  Person: persons,
+} as const;
+
+// Link stage: link every canonical entity of this doc to the rest of the graph.
+// Derive the doc's entities the same way resolve does — DISTINCT (entity_type, entity_id) from
+// attribute_provenance for this doc — fetch each label (entity_index, falling back to the typed
+// table), then call linkEntity once per entity. Order-independent + idempotent by linkEntity's
+// contract, so this is safe to re-run.
+async function linkStage(documentId: number): Promise<void> {
+  const rows = await db
+    .selectDistinct({ entityType: attributeProvenance.entityType, entityId: attributeProvenance.entityId })
+    .from(attributeProvenance)
+    .where(eq(attributeProvenance.documentId, documentId));
+
+  for (const { entityType, entityId } of rows) {
+    const [idx] = await db
+      .select({ label: entityIndex.label })
+      .from(entityIndex)
+      .where(and(eq(entityIndex.entityType, entityType), eq(entityIndex.entityId, entityId)));
+
+    let label = idx?.label;
+    if (label === undefined) {
+      const table = TABLES_BY_TYPE[entityType as keyof typeof TABLES_BY_TYPE];
+      if (!table) continue; // unknown type → nothing to link
+      const [row] = await db.select({ label: table.label }).from(table).where(eq(table.id, entityId));
+      if (!row) continue; // entity merged away → skip
+      label = row.label;
+    }
+
+    await linkEntity({ type: entityType, id: entityId, label }, documentId);
+  }
+}
+
+// Stage handlers. classify/index set documents.status themselves; extract/resolve/link rely on
+// STAGE_TO_DONE_STATUS for the post-stage status.
 const HANDLERS: Partial<Record<Stage, (documentId: number) => Promise<void>>> = {
   classify: classifyDoc,
   index: indexDoc,
+  // extractDoc returns EntityRef[]; the orchestrator ignores the value, so wrap to Promise<void>.
+  extract: async (documentId: number) => { await extractDoc(documentId); },
+  resolve: resolveDoc,
+  link: linkStage,
 };
 
 // Run the next pending stage for a document and return the resulting state.
@@ -44,7 +108,7 @@ export async function advance(documentId: number): Promise<{ stage: string; stat
 
   const handler = HANDLERS[stage];
   if (!handler) {
-    // Stage exists in the pipeline but isn't implemented yet (extract/resolve/link).
+    // Stage exists in the pipeline but has no handler — leave the doc where it is.
     return { stage, status: doc.status };
   }
 

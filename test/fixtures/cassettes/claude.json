@@ -1,0 +1,1280 @@
+{
+  "extract:01acb30a58773c6047665c733b249cc3ce138263b2fa5377c5ab66fc8f2098fa": {
+    "candidates": [
+      {
+        "relationType": "IMPLEMENTS",
+        "otherEntityLabel": "payment-service",
+        "direction": "in",
+        "confidence": 0.98,
+        "snippet": "payment-service implements REQ-2: users complete a payment with a saved card."
+      },
+      {
+        "relationType": "VERIFIES",
+        "otherEntityLabel": "T2",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "T2 verifies REQ-2."
+      },
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "Payment Processing",
+        "direction": "out",
+        "confidence": 0.6,
+        "snippet": "users complete a payment with a saved card"
+      }
+    ]
+  },
+  "extract:024d38bba23eac5be28f31ef3b7184f75455919d466411e6660fd1daa682f5a6": {
+    "candidates": [
+      {
+        "relationType": "IMPLEMENTS",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.98,
+        "snippet": "auth-service implements REQ-1: users authenticate with email and password."
+      },
+      {
+        "relationType": "VERIFIES",
+        "otherEntityLabel": "T1",
+        "direction": "in",
+        "confidence": 0.98,
+        "snippet": "T1 verifies REQ-1."
+      },
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "User Authentication",
+        "direction": "out",
+        "confidence": 0.7,
+        "snippet": "REQ-1: users authenticate with email and password."
+      }
+    ]
+  },
+  "extract:04b959d15d1b66814843cdf87c8a1061eb499e6fe1165c4249ca713466b9006c": {
+    "candidates": [
+      {
+        "relationType": "DEPENDS_ON",
+        "kind": "CALLS",
+        "otherEntityLabel": "token-service",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "auth-service calls token-service to mint a session token"
+      },
+      {
+        "relationType": "USES",
+        "otherEntityLabel": "user-db",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "auth-service uses user-db to store and read user credentials"
+      },
+      {
+        "relationType": "AFFECTS",
+        "otherEntityLabel": "ADR-001",
+        "direction": "in",
+        "confidence": 0.8,
+        "snippet": "This decision affects the auth-service, which issues and validates the tokens. The rationale and full record are captured in ADR-001."
+      },
+      {
+        "relationType": "OWNS",
+        "otherEntityLabel": "Alice Chen",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "Alice Chen owns the auth-service"
+      }
+    ]
+  },
+  "extract:07f05d1fca5e01e8b0c3ad2d64a5a33ca9024481a177d1fadd0b0140bfbce8f5": {
+    "candidates": [
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "User Authentication",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "REQ-3: Users reset their password via an emailed link. This requirement specifies the\nUser Authentication feature."
+      }
+    ]
+  },
+  "extract:080a6dbe2608dfc5cddcad9cca7585e30c01d2feed5e5034134668754f3e9bc0": {
+    "candidates": [
+      {
+        "relationType": "DEPENDS_ON",
+        "kind": "CALLS",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "auth-service calls token-service to mint a session token"
+      }
+    ]
+  },
+  "extract:08ee344a91427aba755d16ff3f51b5ee1d37e1d8f5fd7c1c556d1e43079e349e": {
+    "candidates": [
+      {
+        "relationType": "USES",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.98,
+        "snippet": "auth-service uses user-db to store and read user credentials"
+      }
+    ]
+  },
+  "extract:0ffd07a4bbb9bffb67310c1536cb7c865316364c0a70bdb8426f44ef71a445b6": {
+    "domain": "hiring",
+    "docType": "resume",
+    "title": "Jane Doe - Senior Software Engineer",
+    "authors": [
+      "Jane Doe"
+    ],
+    "docDate": "",
+    "summary": "Resume of Jane Doe, a Senior/Staff Software Engineer based in San Francisco with 8 years of experience building distributed systems and payment platforms. Highlights include leading a checkout service migration to event-driven architecture and mentoring engineers at Acme Payments, and building an order fulfillment pipeline at Globex. Holds a B.S. in Computer Science and has skills in Go, TypeScript, PostgreSQL, Kafka, Kubernetes, and AWS."
+  },
+  "extract:10ec9397f67addfa0d70d89e6e58260e41d4021f4d42984e418963e5848552a2": {
+    "candidates": [
+      {
+        "relationType": "PART_OF",
+        "otherEntityLabel": "User Authentication",
+        "direction": "in",
+        "confidence": 0.99,
+        "snippet": "Feature F1 - User Authentication is part of Helios."
+      },
+      {
+        "relationType": "PART_OF",
+        "otherEntityLabel": "Payment Processing",
+        "direction": "in",
+        "confidence": 0.99,
+        "snippet": "Feature F2 - Payment Processing is part of Helios."
+      }
+    ]
+  },
+  "extract:17ab5265c2266b658223008c972aa66a0a6a9a4df51072af565843d92829acec": {
+    "candidates": []
+  },
+  "extract:1a2ba86f770cdeee9a546af883dd82d3e53d7380a1b4692c09daa4d7feebbb1c": {
+    "candidates": [
+      {
+        "relationType": "IMPLEMENTS",
+        "otherEntityLabel": "REQ-1",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "auth-service implements REQ-1: users authenticate with email and password."
+      },
+      {
+        "relationType": "IMPLEMENTS",
+        "otherEntityLabel": "REQ-3",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "auth-service implements REQ-3: users reset their password via an emailed link."
+      },
+      {
+        "relationType": "IMPLEMENTS",
+        "otherEntityLabel": "REQ-4",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "auth-service implements REQ-4: the login endpoint sustains 10,000 requests/second at p99 < 200 ms."
+      },
+      {
+        "relationType": "DEPENDS_ON",
+        "kind": "CALLS",
+        "otherEntityLabel": "payment-service",
+        "direction": "in",
+        "confidence": 0.95,
+        "snippet": "payment-service calls auth-service on every payment. In other words,\npayment-service depends on auth-service, and the dependency is a synchronous call."
+      },
+      {
+        "relationType": "USES",
+        "otherEntityLabel": "user-db",
+        "direction": "out",
+        "confidence": 0.7,
+        "snippet": "stand up auth-service and token-service, wire user-db, ship REQ-1 and REQ-4"
+      }
+    ]
+  },
+  "extract:1b7047c5fb391a113f2d1cae98a3311a609f0b0673d580f61e25ba567b7f0255": {
+    "candidates": [
+      {
+        "relationType": "IMPLEMENTS",
+        "otherEntityLabel": "REQ-2",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "payment-service implements REQ-2: users complete a payment with a saved card."
+      },
+      {
+        "relationType": "DEPENDS_ON",
+        "kind": "CALLS",
+        "otherEntityLabel": "auth-service",
+        "direction": "out",
+        "confidence": 0.97,
+        "snippet": "payment-service calls auth-service on every payment. In other words,\npayment-service depends on auth-service, and the dependency is a synchronous call."
+      }
+    ]
+  },
+  "extract:21217f679a3603a5e082eb03f44ef847e1a4415227a3e22f533ba270c9429eaf": {
+    "domain": "software_dev",
+    "docType": "PRD",
+    "title": "Product Requirements Document: Helios",
+    "authors": [
+      "Priya Nair"
+    ],
+    "docDate": "2026-02-03",
+    "summary": "This approved PRD defines the product requirements for Helios, a payments platform that lets customers sign in and pay merchants using saved cards. It specifies two launch features: User Authentication (F1) and Payment Processing (F2), with functional requirements for email/password login, saved-card payments, and password reset, plus a performance NFR requiring the login endpoint to sustain 10,000 requests/second at p99 < 200 ms. It notes implementation direction with an auth-service and payment-service, deferring detailed design to the HLD and per-service LLDs."
+  },
+  "extract:254e3dedfd46c8a2ae23796c0deb127c64513a92b5f54df042c5092b052643b8": {
+    "candidates": [
+      {
+        "relationType": "VALIDATES",
+        "otherEntityLabel": "REQ-4",
+        "direction": "out",
+        "confidence": 0.97,
+        "snippet": "This load test validates REQ-4: the login endpoint sustains 10,000 requests/second at\np99 < 200 ms."
+      }
+    ]
+  },
+  "extract:298c0f8e4e6ed319f9b7f1d56e65daaf889cd5ea84d520f2e49a2175fe2048bf": {
+    "candidates": [
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "User Authentication",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "REQ-3: Users reset their password via an emailed link. This requirement specifies the\nUser Authentication feature."
+      }
+    ]
+  },
+  "extract:2ac7e785281eaeb47d61eb5ab99deced594bb55b56fd59e60f8397e206aa089e": {
+    "candidates": [
+      {
+        "relationType": "PART_OF",
+        "otherEntityLabel": "User Authentication",
+        "direction": "in",
+        "confidence": 0.85,
+        "snippet": "This high-level design covers how Helios authenticates users."
+      }
+    ]
+  },
+  "extract:2dea8e024f3266edb01524b88fbfe8b770370078753ea9b1c5e589ae5549f85a": {
+    "candidates": [
+      {
+        "relationType": "DEPENDS_ON",
+        "kind": "CALLS",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "auth-service calls token-service to mint a JWT session\ntoken"
+      }
+    ]
+  },
+  "extract:2f1007178224a7a7fcfcf6574707880408bf15966ecddfbfb6d413c544fe8df2": {
+    "candidates": [
+      {
+        "relationType": "OWNS",
+        "otherEntityLabel": "auth-service",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "The auth-service is owned by Alice Chen."
+      }
+    ]
+  },
+  "extract:31959edfc25448e2fd3798280af4621ea5a77dd07122833347e771f909066100": {
+    "domain": "software_dev",
+    "docType": "LLD",
+    "title": "Low-Level Design: auth-service",
+    "authors": [
+      "Alice Chen"
+    ],
+    "docDate": "2026-02-25",
+    "summary": "This low-level design details the internals of the Go-based auth-service for Helios, which handles sign-in and password reset. It describes datastore access using a PostgreSQL user-db as the system of record for reading and writing password hashes, and a synchronous gRPC token flow where auth-service calls token-service to mint and verify JWT session tokens. The document specifies two endpoints (POST /login and POST /password-reset) and identifies Alice Chen as the owner; payment functionality is explicitly out of scope."
+  },
+  "extract:3b01b722a2f5a5322194212418985ef22b01f7c94afef87a79ca29b95f5d45a0": {
+    "candidates": [
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "Payment Processing",
+        "direction": "out",
+        "confidence": 0.99,
+        "snippet": "REQ-2: Users complete a payment with a saved card. This requirement specifies the\nPayment Processing feature."
+      }
+    ]
+  },
+  "extract:42860ba9dfde5b4c937ff9884ff501dba7c545a8ca1b44441767f75f1cff81ce": {
+    "candidates": [
+      {
+        "relationType": "USES",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.99,
+        "snippet": "auth-service uses user-db as its system of record for accounts"
+      }
+    ]
+  },
+  "extract:4962f4bbadb4e3aee3c9f3f2670e37ae5967d2df7711d8be1102cd8de443f5e1": {
+    "candidates": [
+      {
+        "relationType": "IMPLEMENTS",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "auth-service implements REQ-4: the login endpoint sustains 10,000 requests/second at p99 < 200 ms."
+      }
+    ]
+  },
+  "extract:4b6aeefff7396457852448e69b575ba7c406e17ab04d1ef6c658cefde3d36819": {
+    "candidates": [
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "Payment Processing",
+        "direction": "out",
+        "confidence": 0.99,
+        "snippet": "REQ-2: Users complete a payment with a saved card. This requirement specifies the\nPayment Processing feature."
+      }
+    ]
+  },
+  "extract:4f0780b943f15510f3e1d3033075b2dbff68bc3f09442eeb1f318ba19c088993": {
+    "candidates": [
+      {
+        "relationType": "AFFECTS",
+        "otherEntityLabel": "auth-service",
+        "direction": "out",
+        "confidence": 0.97,
+        "snippet": "This decision affects the auth-service,\nwhich issues and validates the tokens. The rationale and full record are captured in\nADR-001."
+      }
+    ]
+  },
+  "extract:54589264d0e7bccb1a92ea4776651b497171a1af9979bbaef6b690173186d82f": {
+    "entities": [
+      {
+        "type": "Service",
+        "label": "auth-service",
+        "fields": [
+          {
+            "key": "description",
+            "value": "Authenticates users; implements REQ-1, REQ-3, and REQ-4",
+            "snippet": "auth-service implements REQ-1: users authenticate with email and password."
+          }
+        ]
+      },
+      {
+        "type": "Service",
+        "label": "payment-service",
+        "fields": [
+          {
+            "key": "description",
+            "value": "Processes payments with saved cards; depends synchronously on auth-service",
+            "snippet": "payment-service implements REQ-2: users complete a payment with a saved card."
+          }
+        ]
+      },
+      {
+        "type": "Service",
+        "label": "token-service",
+        "fields": [
+          {
+            "key": "description",
+            "value": "Stood up in Phase 1 alongside auth-service",
+            "snippet": "stand up auth-service and token-service, wire user-db"
+          }
+        ]
+      },
+      {
+        "type": "Requirement",
+        "label": "REQ-1",
+        "fields": [
+          {
+            "key": "text",
+            "value": "users authenticate with email and password",
+            "snippet": "REQ-1: users authenticate with email and password"
+          },
+          {
+            "key": "kind",
+            "value": "functional",
+            "snippet": "users authenticate with email and password"
+          }
+        ]
+      },
+      {
+        "type": "Requirement",
+        "label": "REQ-2",
+        "fields": [
+          {
+            "key": "text",
+            "value": "users complete a payment with a saved card",
+            "snippet": "REQ-2: users complete a payment with a saved card"
+          },
+          {
+            "key": "kind",
+            "value": "functional",
+            "snippet": "users complete a payment with a saved card"
+          }
+        ]
+      },
+      {
+        "type": "Requirement",
+        "label": "REQ-3",
+        "fields": [
+          {
+            "key": "text",
+            "value": "users reset their password via an emailed link",
+            "snippet": "REQ-3: users reset their password via an emailed link"
+          },
+          {
+            "key": "kind",
+            "value": "functional",
+            "snippet": "users reset their password via an emailed link"
+          }
+        ]
+      },
+      {
+        "type": "Requirement",
+        "label": "REQ-4",
+        "fields": [
+          {
+            "key": "text",
+            "value": "the login endpoint sustains 10,000 requests/second at p99 < 200 ms",
+            "snippet": "REQ-4: the login endpoint sustains 10,000 requests/second at p99 < 200 ms"
+          },
+          {
+            "key": "kind",
+            "value": "non-functional",
+            "snippet": "the login\nthroughput NFR"
+          },
+          {
+            "key": "metric",
+            "value": "requests/second at p99",
+            "snippet": "10,000 requests/second at p99 < 200 ms"
+          },
+          {
+            "key": "targetValue",
+            "value": "10,000 requests/second at p99 < 200 ms",
+            "snippet": "10,000 requests/second at p99 < 200 ms"
+          }
+        ]
+      },
+      {
+        "type": "Test",
+        "label": "T1",
+        "fields": [
+          {
+            "key": "kind",
+            "value": "integration test",
+            "snippet": "an integration test that signs in with email and password and\nasserts a session is returned"
+          },
+          {
+            "key": "description",
+            "value": "login integration test: signs in with email and password and asserts a session is returned; verifies REQ-1",
+            "snippet": "T1 - login integration test: an integration test that signs in with email and password and\nasserts a session is returned. T1 verifies REQ-1."
+          }
+        ]
+      },
+      {
+        "type": "Test",
+        "label": "T2",
+        "fields": [
+          {
+            "key": "kind",
+            "value": "integration test",
+            "snippet": "an integration test that completes a payment with a saved card and\nasserts the charge succeeds"
+          },
+          {
+            "key": "description",
+            "value": "payment flow test: completes a payment with a saved card and asserts the charge succeeds; verifies REQ-2",
+            "snippet": "T2 - payment flow test: an integration test that completes a payment with a saved card and\nasserts the charge succeeds. T2 verifies REQ-2."
+          }
+        ]
+      }
+    ]
+  },
+  "extract:550a58da91d249a128049c8f9cc0fbcc47ae41de0a33265e25916a1c3f366da4": {
+    "candidates": [
+      {
+        "relationType": "AFFECTS",
+        "otherEntityLabel": "auth-service",
+        "direction": "out",
+        "confidence": 0.95,
+        "snippet": "This decision affects the auth-service,\nwhich issues and validates the tokens. The rationale and full record are captured in\nADR-001."
+      }
+    ]
+  },
+  "extract:558673e11b951091abfcfe289a6b639d6560f93651d14e2a851847594f407222": {
+    "candidates": [
+      {
+        "relationType": "IMPLEMENTS",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.98,
+        "snippet": "auth-service implements REQ-3: users reset their password via an emailed link."
+      }
+    ]
+  },
+  "extract:56f13217c0317548f68089da3a9aa2286584d06bb38c298f9dbf459280275d57": {
+    "candidates": [
+      {
+        "relationType": "OWNS",
+        "otherEntityLabel": "auth-service",
+        "direction": "out",
+        "confidence": 0.97,
+        "snippet": "The auth-service is owned by Alice Chen."
+      }
+    ]
+  },
+  "extract:57086c18373d3118d0fae1e64c1e05d1363bc16d97067a9fd4f52bddb1ca131d": {
+    "candidates": [
+      {
+        "relationType": "USES",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.99,
+        "snippet": "auth-service uses user-db as its system of record for accounts"
+      }
+    ]
+  },
+  "extract:58869729c23a5f148d1c3c28145b6717362a228adeb456493752d757d2f1e7eb": {
+    "candidates": [
+      {
+        "relationType": "USES",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.98,
+        "snippet": "auth-service uses user-db to store and read user credentials."
+      }
+    ]
+  },
+  "extract:5936dc4111e3fb6441e4069914e53c9a46f492978960d1a295c115a27e3bc57f": {
+    "candidates": [
+      {
+        "relationType": "IMPLEMENTS",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "auth-service implements REQ-4: the login endpoint sustains 10,000 requests/second at p99 < 200 ms."
+      }
+    ]
+  },
+  "extract:5ed0bb56d78dc079c4f127f394ff4dcbf276e97bf49b04538c6e6d52287524cb": {
+    "candidates": [
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "User Authentication",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "This\nnon-functional requirement specifies the User Authentication feature."
+      }
+    ]
+  },
+  "extract:6600986c3baa0bdfe4c941031389ce17912b1e9854bc76674f753d34be1fbd48": {
+    "candidates": [
+      {
+        "relationType": "AFFECTS",
+        "otherEntityLabel": "auth-service",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "This decision affects the auth-service, which is the service that issues and validates the\nsession tokens."
+      }
+    ]
+  },
+  "extract:6b310d7a7525886c0e4563e280f368fbadcaa16f8c813a7aa35c097b4bdd6001": {
+    "entities": [
+      {
+        "type": "Decision",
+        "label": "ADR-001",
+        "fields": [
+          {
+            "key": "status",
+            "value": "Accepted",
+            "snippet": "The decision is ACCEPTED."
+          },
+          {
+            "key": "rationale",
+            "value": "JWT lets the auth-service and downstream services validate a session statelessly, without a round trip to a central session store on every request, keeping the hot sign-in path fast and avoiding a shared session datastore becoming a bottleneck under the 10,000 requests/second target.",
+            "snippet": "JWT lets the auth-service and downstream services validate a session statelessly, without a\nround trip to a central session store on every request. This keeps the hot sign-in path fast\nand avoids a shared session datastore becoming a bottleneck under the 10,000 requests/second\ntarget."
+          }
+        ]
+      }
+    ]
+  },
+  "extract:70c67c5bc30b60d89cf0a4bb865fb2a437c9d2639a62e5a0ae6eea98a6ec139b": {
+    "candidates": [
+      {
+        "relationType": "IMPLEMENTS",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "auth-service implements REQ-1: users authenticate with email and password."
+      },
+      {
+        "relationType": "VERIFIES",
+        "otherEntityLabel": "T1",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "T1 verifies REQ-1."
+      }
+    ]
+  },
+  "extract:7194e6abc3af26ba34af57d385fba1232f94f615c86a78da568ec18575a2363d": {
+    "candidates": [
+      {
+        "relationType": "USES",
+        "otherEntityLabel": "user-db",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "auth-service uses user-db as its system of record for accounts"
+      },
+      {
+        "relationType": "DEPENDS_ON",
+        "kind": "CALLS",
+        "otherEntityLabel": "token-service",
+        "direction": "out",
+        "confidence": 0.97,
+        "snippet": "auth-service calls token-service to mint a JWT session\ntoken"
+      },
+      {
+        "relationType": "OWNS",
+        "otherEntityLabel": "Alice Chen",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "The auth-service is owned by Alice Chen."
+      }
+    ]
+  },
+  "extract:7ab2d4bc117e4253895fe99468f6106c37553b4a4565bf00dcc0dc56c5e70325": {
+    "entities": [
+      {
+        "type": "LoadTestResult",
+        "label": "login load test",
+        "fields": [
+          {
+            "key": "scenario",
+            "value": "a sustained load test of the Helios login endpoint, ramping concurrent clients until throughput plateaued",
+            "snippet": "login load test: a sustained load test of the Helios login endpoint, ramping concurrent\nclients until throughput plateaued. The scenario drives the POST /login path end to end."
+          },
+          {
+            "key": "metric",
+            "value": "throughput",
+            "snippet": "observed throughput 8,000 requests/second"
+          },
+          {
+            "key": "observedValue",
+            "value": "8,000 requests/second",
+            "snippet": "observed throughput 8,000 requests/second against\nthe 10,000 requests/second target"
+          },
+          {
+            "key": "targetValue",
+            "value": "10,000 requests/second",
+            "snippet": "the login endpoint sustains 10,000 requests/second at"
+          },
+          {
+            "key": "passed",
+            "value": "false",
+            "snippet": "Result: FAILED. The login load test missed the target."
+          }
+        ]
+      },
+      {
+        "type": "LoadTestResult",
+        "label": "login load test p99 latency",
+        "fields": [
+          {
+            "key": "metric",
+            "value": "p99 latency",
+            "snippet": "observed p99 latency 250 ms against the < 200 ms\ntarget"
+          },
+          {
+            "key": "observedValue",
+            "value": "250 ms",
+            "snippet": "observed p99 latency of\n250 ms exceeds the 200 ms target"
+          },
+          {
+            "key": "targetValue",
+            "value": "p99 < 200 ms",
+            "snippet": "p99 < 200 ms"
+          },
+          {
+            "key": "passed",
+            "value": "false",
+            "snippet": "observed p99 latency of\n250 ms exceeds the 200 ms target"
+          }
+        ]
+      }
+    ]
+  },
+  "extract:831092297821eba0571a6d4799bb3d4ed015a69faa66d73b90b2945d3f09bc69": {
+    "candidates": [
+      {
+        "relationType": "AFFECTS",
+        "otherEntityLabel": "auth-service",
+        "direction": "out",
+        "confidence": 0.97,
+        "snippet": "This decision affects the auth-service, which is the service that issues and validates the\nsession tokens."
+      }
+    ]
+  },
+  "extract:83168efeb91940a9ed45c9ca668f6b88247c63f70e101ab61edfd88baae1bc3e": {
+    "candidates": [
+      {
+        "relationType": "IMPLEMENTS",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "auth-service implements REQ-3: users reset their password via an emailed link."
+      }
+    ]
+  },
+  "extract:90f9914382925c8bb1e7ccb59e840efa5718b250ed9f2ffc928fabfecbe45cbf": {
+    "domain": "software_dev",
+    "docType": "HLD",
+    "title": "High-Level Design: Helios Authentication",
+    "authors": [
+      "Alice Chen"
+    ],
+    "docDate": "2026-02-18",
+    "summary": "This high-level design describes how the Helios platform authenticates users. It covers the auth-service (a Go service owned by Alice Chen that handles sign-in), the token-service (a Go infrastructure service that mints and verifies session tokens), and the user-db PostgreSQL datastore backing sign-in. The auth-service synchronously calls token-service to mint a session token after a successful password check and reads/writes account rows in user-db on every sign-in. The document notes the decision to adopt JWT for session tokens (recorded in ADR-001) and states that Alice Chen owns the auth-service and is the on-call escalation point. Payment-side design is out of scope."
+  },
+  "extract:a73fea4f88ea1b575c3232400acafa1178cc07d0583288f9f79212f81bb85b50": {
+    "entities": [
+      {
+        "type": "System",
+        "label": "Helios",
+        "fields": [
+          {
+            "key": "description",
+            "value": "Our company's payments platform that lets customers sign in and pay merchants using saved cards.",
+            "snippet": "Helios is our company's payments platform. Helios lets customers sign in and pay\nmerchants using cards they have saved."
+          }
+        ]
+      },
+      {
+        "type": "Feature",
+        "label": "User Authentication",
+        "fields": [
+          {
+            "key": "description",
+            "value": "Covers how a customer proves who they are before they can transact.",
+            "snippet": "User Authentication covers how a\ncustomer proves who they are before they can transact."
+          }
+        ]
+      },
+      {
+        "type": "Feature",
+        "label": "Payment Processing",
+        "fields": [
+          {
+            "key": "description",
+            "value": "Covers how a customer pays a merchant once they are authenticated.",
+            "snippet": "Payment Processing covers how a\ncustomer pays a merchant once they are authenticated."
+          }
+        ]
+      },
+      {
+        "type": "Requirement",
+        "label": "REQ-1",
+        "fields": [
+          {
+            "key": "text",
+            "value": "Users authenticate with email and password.",
+            "snippet": "REQ-1: Users authenticate with email and password."
+          },
+          {
+            "key": "kind",
+            "value": "functional",
+            "snippet": "This is a functional requirement."
+          },
+          {
+            "key": "priority",
+            "value": "must-have",
+            "snippet": "Priority: must-have."
+          }
+        ]
+      },
+      {
+        "type": "Requirement",
+        "label": "REQ-2",
+        "fields": [
+          {
+            "key": "text",
+            "value": "Users complete a payment with a saved card.",
+            "snippet": "REQ-2: Users complete a payment with a saved card."
+          },
+          {
+            "key": "kind",
+            "value": "functional",
+            "snippet": "This is a functional requirement."
+          },
+          {
+            "key": "priority",
+            "value": "must-have",
+            "snippet": "Priority: must-have."
+          }
+        ]
+      },
+      {
+        "type": "Requirement",
+        "label": "REQ-3",
+        "fields": [
+          {
+            "key": "text",
+            "value": "Users reset their password via an emailed link.",
+            "snippet": "REQ-3: Users reset their password via an emailed link."
+          },
+          {
+            "key": "kind",
+            "value": "functional",
+            "snippet": "This is a functional requirement."
+          },
+          {
+            "key": "priority",
+            "value": "should-have",
+            "snippet": "Priority: should-have."
+          }
+        ]
+      },
+      {
+        "type": "Requirement",
+        "label": "REQ-4",
+        "fields": [
+          {
+            "key": "text",
+            "value": "The login endpoint sustains 10,000 requests/second at p99 < 200 ms.",
+            "snippet": "REQ-4: The login endpoint sustains 10,000 requests/second at p99 < 200 ms."
+          },
+          {
+            "key": "kind",
+            "value": "performance NFR",
+            "snippet": "This is a performance NFR."
+          },
+          {
+            "key": "metric",
+            "value": "login throughput and p99 latency",
+            "snippet": "Metric:\nlogin throughput and p99 latency."
+          },
+          {
+            "key": "targetValue",
+            "value": "10,000 requests/second at p99 < 200 ms",
+            "snippet": "Target value: 10,000 requests/second at p99 < 200 ms."
+          },
+          {
+            "key": "priority",
+            "value": "must-have",
+            "snippet": "Priority: must-have."
+          }
+        ]
+      }
+    ]
+  },
+  "extract:a95462755084b454c0846c127413daf6ceca618a34287aab39050ade454f5cb9": {
+    "domain": "software_dev",
+    "docType": "load_test_report",
+    "title": "Load Test Report: Helios Login Endpoint",
+    "authors": [
+      "Mei Tanaka"
+    ],
+    "docDate": "2026-03-18",
+    "summary": "This is a final load test report documenting a single load-test run against the Helios login endpoint (POST /login). The run ramped concurrent clients to validate REQ-4, which requires the endpoint to sustain 10,000 requests/second at p99 < 200 ms. The observed results were 8,000 requests/second throughput and 250 ms p99 latency, both falling short of the targets, so the verdict is FAILED. A follow-up performance work item is being tracked against the auth-service to close the gap before launch."
+  },
+  "extract:af34404e3f9d5bd00b68695addfbb55e7bce8e73263e0089f223fd44ff77d7f2": {
+    "candidates": [
+      {
+        "relationType": "PART_OF",
+        "otherEntityLabel": "Helios",
+        "direction": "out",
+        "confidence": 0.99,
+        "snippet": "Feature F1 - User Authentication is part of Helios."
+      },
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "REQ-1",
+        "direction": "in",
+        "confidence": 0.98,
+        "snippet": "REQ-1: Users authenticate with email and password. This requirement specifies the\nUser Authentication feature."
+      },
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "REQ-3",
+        "direction": "in",
+        "confidence": 0.98,
+        "snippet": "REQ-3: Users reset their password via an emailed link. This requirement specifies the\nUser Authentication feature."
+      },
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "REQ-4",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "This\nnon-functional requirement specifies the User Authentication feature."
+      }
+    ]
+  },
+  "extract:b2d06b4c9188e2c4311279343cd54c170d68ae6b0572e4d3aaf2970cf31487f1": {
+    "entities": [
+      {
+        "type": "Service",
+        "label": "auth-service",
+        "fields": [
+          {
+            "key": "language",
+            "value": "Go",
+            "snippet": "It is written in Go."
+          },
+          {
+            "key": "description",
+            "value": "implements sign-in and password reset for Helios",
+            "snippet": "implements sign-in and password reset for Helios"
+          },
+          {
+            "key": "owner",
+            "value": "Alice Chen",
+            "snippet": "The auth-service is owned by Alice Chen."
+          }
+        ]
+      },
+      {
+        "type": "Service",
+        "label": "token-service",
+        "fields": [
+          {
+            "key": "description",
+            "value": "mints and verifies JWT session tokens",
+            "snippet": "auth-service depends on token-service for minting and verifying tokens"
+          }
+        ]
+      },
+      {
+        "type": "Datastore",
+        "label": "user-db",
+        "fields": [
+          {
+            "key": "engine",
+            "value": "PostgreSQL",
+            "snippet": "user-db is a PostgreSQL database."
+          },
+          {
+            "key": "purpose",
+            "value": "system of record for accounts",
+            "snippet": "auth-service uses user-db as its system of record for accounts"
+          }
+        ]
+      },
+      {
+        "type": "Person",
+        "label": "Alice Chen",
+        "fields": [
+          {
+            "key": "role",
+            "value": "Staff Engineer",
+            "snippet": "Alice Chen (Staff Engineer)"
+          }
+        ]
+      }
+    ]
+  },
+  "extract:baa1cd8433ccaf6a2423142f81a89722777f0c95c310c2e1ddb53ed7b6dec59f": {
+    "candidates": [
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "User Authentication",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "REQ-1: Users authenticate with email and password. This requirement specifies the\nUser Authentication feature."
+      }
+    ]
+  },
+  "extract:c19335fb3d03ce1601f5b1f96dc3f0cae5f00a98547e847cab33cab0826abeb1": {
+    "candidates": [
+      {
+        "relationType": "DEPENDS_ON",
+        "kind": "CALLS",
+        "otherEntityLabel": "token-service",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "auth-service calls token-service to mint a session token"
+      },
+      {
+        "relationType": "USES",
+        "otherEntityLabel": "user-db",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "auth-service uses user-db to store and read user credentials"
+      },
+      {
+        "relationType": "AFFECTS",
+        "otherEntityLabel": "ADR-001",
+        "direction": "in",
+        "confidence": 0.9,
+        "snippet": "This decision affects the auth-service"
+      },
+      {
+        "relationType": "OWNS",
+        "otherEntityLabel": "Alice Chen",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "Alice Chen owns the auth-service"
+      }
+    ]
+  },
+  "extract:ca6bb489d2e15a1f1f1f2833764759b2fcc8779d086e98e9d82e7f6d91aed52b": {
+    "candidates": [
+      {
+        "relationType": "DEPENDS_ON",
+        "kind": "CALLS",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "auth-service calls token-service to mint a session token"
+      }
+    ]
+  },
+  "extract:cc7fbe4c8c5c945a421672388e28209db31602b32d1faca4a754d03d0b7bb45a": {
+    "candidates": [
+      {
+        "relationType": "OWNS",
+        "otherEntityLabel": "auth-service",
+        "direction": "out",
+        "confidence": 0.99,
+        "snippet": "auth-service is owned by\nAlice Chen"
+      }
+    ]
+  },
+  "extract:d34ef55ae76ce5eb8310f084885d431d93f3a8ec43e5a56107c3845aececa570": {
+    "candidates": [
+      {
+        "relationType": "PART_OF",
+        "otherEntityLabel": "Helios",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "Feature F2 - Payment Processing is part of Helios."
+      },
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "REQ-2",
+        "direction": "in",
+        "confidence": 0.98,
+        "snippet": "REQ-2: Users complete a payment with a saved card. This requirement specifies the\nPayment Processing feature."
+      }
+    ]
+  },
+  "extract:d422267df523e9014062d23f6a06a9f42a2227eed9ef00b15621a36c9147ae6f": {
+    "entities": [
+      {
+        "type": "System",
+        "label": "Helios",
+        "fields": [
+          {
+            "key": "description",
+            "value": "Helios authentication system covering how Helios authenticates users",
+            "snippet": "This high-level design covers how Helios authenticates users."
+          }
+        ]
+      },
+      {
+        "type": "Service",
+        "label": "auth-service",
+        "fields": [
+          {
+            "key": "language",
+            "value": "Go",
+            "snippet": "The auth-service is written in Go."
+          },
+          {
+            "key": "description",
+            "value": "the service that handles sign-in for Helios",
+            "snippet": "auth-service is the service that handles sign-in for Helios."
+          },
+          {
+            "key": "owner",
+            "value": "Alice Chen",
+            "snippet": "auth-service is owned by\nAlice Chen."
+          }
+        ]
+      },
+      {
+        "type": "Service",
+        "label": "token-service",
+        "fields": [
+          {
+            "key": "language",
+            "value": "Go",
+            "snippet": "The\ntoken-service is written in Go."
+          },
+          {
+            "key": "description",
+            "value": "an infrastructure service that mints and verifies session tokens",
+            "snippet": "token-service is an infrastructure service that mints and verifies session tokens."
+          }
+        ]
+      },
+      {
+        "type": "Datastore",
+        "label": "user-db",
+        "fields": [
+          {
+            "key": "engine",
+            "value": "PostgreSQL",
+            "snippet": "user-db is a PostgreSQL\ndatabase."
+          },
+          {
+            "key": "purpose",
+            "value": "store and read user credentials",
+            "snippet": "auth-service uses user-db to store and read user credentials."
+          }
+        ]
+      },
+      {
+        "type": "Decision",
+        "label": "ADR-001",
+        "fields": [
+          {
+            "key": "rationale",
+            "value": "For session tokens we have decided to adopt JWT",
+            "snippet": "For session tokens we have decided to adopt JWT."
+          }
+        ]
+      },
+      {
+        "type": "Person",
+        "label": "Alice Chen",
+        "fields": [
+          {
+            "key": "role",
+            "value": "Staff Engineer",
+            "snippet": "Alice Chen (Staff Engineer)"
+          }
+        ]
+      }
+    ]
+  },
+  "extract:d7be5399101cb2e78b7e704bf61cff53f5e974b25b10f86c5e3d4334c3c5efe9": {
+    "candidates": [
+      {
+        "relationType": "OWNS",
+        "otherEntityLabel": "auth-service",
+        "direction": "out",
+        "confidence": 0.99,
+        "snippet": "auth-service is owned by\nAlice Chen"
+      }
+    ]
+  },
+  "extract:dd4b5fe6cefed0555712df87096a3d4fce8c723286f159882d45737ef97c06e2": {
+    "candidates": [
+      {
+        "relationType": "IMPLEMENTS",
+        "otherEntityLabel": "payment-service",
+        "direction": "in",
+        "confidence": 0.98,
+        "snippet": "payment-service implements REQ-2: users complete a payment with a saved card."
+      },
+      {
+        "relationType": "VERIFIES",
+        "otherEntityLabel": "T2",
+        "direction": "in",
+        "confidence": 0.98,
+        "snippet": "T2 verifies REQ-2."
+      },
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "Payment Processing",
+        "direction": "out",
+        "confidence": 0.7,
+        "snippet": "REQ-2: users complete a payment with a saved card"
+      }
+    ]
+  },
+  "extract:df10c881372c86c8c13398ee9b3a434c08dfdeea8d767b0d98cd6b1acce8da7d": {
+    "candidates": []
+  },
+  "extract:e3254305da2c725103d02671fd1c6255dd8a2d92f301d45682a3facd1a92c1d1": {
+    "candidates": [
+      {
+        "relationType": "VERIFIES",
+        "otherEntityLabel": "REQ-2",
+        "direction": "out",
+        "confidence": 0.99,
+        "snippet": "T2 verifies REQ-2."
+      }
+    ]
+  },
+  "extract:e3876aec07f70590de887b8b60a0e5234ecc4e7e532af2dcbe6d1050617a182a": {
+    "domain": "software_dev",
+    "docType": "impl_plan",
+    "title": "Implementation Plan: Helios Launch",
+    "authors": [
+      "Ravi Kumar"
+    ],
+    "docDate": "2026-03-04",
+    "summary": "This implementation plan for the Helios launch maps product requirements to the services that implement them and the tests that verify them. The auth-service implements REQ-1 (email/password authentication), REQ-3 (password reset via emailed link), and REQ-4 (login endpoint sustaining 10,000 req/s at p99 < 200 ms), while the payment-service implements REQ-2 (payment with a saved card) and depends synchronously on auth-service to confirm sign-in. The test plan covers T1 (login integration test verifying REQ-1) and T2 (payment flow test verifying REQ-2), noting REQ-3 lacks an automated test and REQ-4 is only exercised by load testing. Work is sequenced in three phases: standing up auth and token services (REQ-1, REQ-4), shipping password reset (REQ-3), and standing up payment-service (REQ-2)."
+  },
+  "extract:e6a81a7fb8a66d9ee93d431342e93a3b15c4a1d0450f5835eb45484e6ca70cee": {
+    "domain": "software_dev",
+    "docType": "ADR",
+    "title": "ADR-001: Adopt JWT for session tokens",
+    "authors": [
+      "Alice Chen"
+    ],
+    "docDate": "2026-02-10",
+    "summary": "This architecture decision record documents the accepted decision to adopt self-contained JSON Web Tokens (JWT) for session tokens in the Helios sign-in flow, chosen over opaque server-side session tokens. The rationale is that JWT enables stateless validation by the auth-service and downstream services without round trips to a central session store, keeping the sign-in path fast under a 10,000 requests/second target. Consequences include requiring the auth-service to rotate signing keys and enforce short token lifetimes, with no other services impacted at this time."
+  },
+  "extract:ee73f72194cfda331a13e3e49c47e17e5495e3a4bd06acb081079855221980fb": {
+    "candidates": [
+      {
+        "relationType": "VERIFIES",
+        "otherEntityLabel": "REQ-1",
+        "direction": "out",
+        "confidence": 0.99,
+        "snippet": "T1 verifies REQ-1."
+      }
+    ]
+  },
+  "extract:f351c8a557e91bb10287e3e2e625bd8f56eb580a05c8da03220e1f1498e4b64e": {
+    "candidates": [
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "User Authentication",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "REQ-1: Users authenticate with email and password. This requirement specifies the\nUser Authentication feature."
+      }
+    ]
+  },
+  "extract:f6307a330d2493d84c2802329d88c63c04ed1acacccccdc3c566b26b5ec24da9": {
+    "candidates": [
+      {
+        "relationType": "SPECIFIES",
+        "otherEntityLabel": "User Authentication",
+        "direction": "out",
+        "confidence": 0.97,
+        "snippet": "This\nnon-functional requirement specifies the User Authentication feature."
+      }
+    ]
+  },
+  "extract:fa64366e4152e17aa39b116b1c943c23483fc7b24c274f05db5cf1f1169b60aa": {
+    "candidates": [
+      {
+        "relationType": "DEPENDS_ON",
+        "kind": "CALLS",
+        "otherEntityLabel": "auth-service",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "auth-service calls token-service to mint a JWT session\ntoken. auth-service depends on token-service for minting and verifying tokens; this is a\nsynchronous call from auth-service to token-service over gRPC."
+      }
+    ]
+  },
+  "extract:fb462354261940b805f4fbd3c88fb460fbbb30e56f79befe4b9c4cf2e9d305e6": {
+    "candidates": [
+      {
+        "relationType": "USES",
+        "otherEntityLabel": "user-db",
+        "direction": "out",
+        "confidence": 0.98,
+        "snippet": "auth-service uses user-db as its system of record for accounts"
+      },
+      {
+        "relationType": "DEPENDS_ON",
+        "kind": "CALLS",
+        "otherEntityLabel": "token-service",
+        "direction": "out",
+        "confidence": 0.97,
+        "snippet": "auth-service calls token-service to mint a JWT session\ntoken"
+      },
+      {
+        "relationType": "OWNS",
+        "otherEntityLabel": "Alice Chen",
+        "direction": "in",
+        "confidence": 0.97,
+        "snippet": "The auth-service is owned by Alice Chen."
+      }
+    ]
+  }
+}

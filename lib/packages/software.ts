@@ -9,7 +9,7 @@ export const SOFTWARE_PACKAGE: GraphPackage = {
     ARD: ["System", "Service", "Datastore", "Decision", "Person"],
     LLD: ["Service", "Datastore", "Person"],
     ADR: ["Decision"],
-    impl_plan: ["Service", "Requirement"],
+    impl_plan: ["Service", "Requirement", "Test"],
     load_test_report: ["LoadTestResult"],
   },
   entityTypes: [

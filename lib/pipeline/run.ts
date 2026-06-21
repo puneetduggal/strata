@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   documents,
-  attributeProvenance,
+  edges,
   entityIndex,
   systems,
   features,
@@ -40,33 +40,58 @@ const TABLES_BY_TYPE = {
   Person: persons,
 } as const;
 
-// Link stage: link every canonical entity of this doc to the rest of the graph.
-// Derive the doc's entities the same way resolve does — DISTINCT (entity_type, entity_id) from
-// attribute_provenance for this doc — fetch each label (entity_index, falling back to the typed
-// table), then call linkEntity once per entity. Order-independent + idempotent by linkEntity's
-// contract, so this is safe to re-run.
-async function linkStage(documentId: number): Promise<void> {
+// Resolve an entity's current label (entity_index first, typed-table fallback). Returns null when
+// the entity has been merged away (no index row and no typed row).
+async function labelOf(entityType: string, entityId: number): Promise<string | null> {
+  const [idx] = await db
+    .select({ label: entityIndex.label })
+    .from(entityIndex)
+    .where(and(eq(entityIndex.entityType, entityType), eq(entityIndex.entityId, entityId)));
+  if (idx?.label !== undefined) return idx.label;
+
+  const table = TABLES_BY_TYPE[entityType as keyof typeof TABLES_BY_TYPE];
+  if (!table) return null; // unknown type → nothing to link
+  const [row] = await db.select({ label: table.label }).from(table).where(eq(table.id, entityId));
+  return row?.label ?? null; // null ⇒ entity merged away
+}
+
+// Entities MENTIONED in a doc = the distinct (targetType,targetId) of that doc's deterministic
+// chunk —MENTIONS→ entity edges (evidence_document_id = documentId). This is the doc's full entity
+// surface — broader than attribute_provenance (which is only entities the doc was the PRIMARY source
+// for), so it lets the linker propose edges grounded in this doc between ANY entities it mentions.
+async function mentionedEntities(documentId: number): Promise<Array<{ entityType: string; entityId: number }>> {
   const rows = await db
-    .selectDistinct({ entityType: attributeProvenance.entityType, entityId: attributeProvenance.entityId })
-    .from(attributeProvenance)
-    .where(eq(attributeProvenance.documentId, documentId));
+    .selectDistinct({ entityType: edges.targetType, entityId: edges.targetId })
+    .from(edges)
+    .where(and(eq(edges.relationType, "MENTIONS"), eq(edges.evidenceDocumentId, documentId)));
+  return rows;
+}
 
-  for (const { entityType, entityId } of rows) {
-    const [idx] = await db
-      .select({ label: entityIndex.label })
-      .from(entityIndex)
-      .where(and(eq(entityIndex.entityType, entityType), eq(entityIndex.entityId, entityId)));
-
-    let label = idx?.label;
-    if (label === undefined) {
-      const table = TABLES_BY_TYPE[entityType as keyof typeof TABLES_BY_TYPE];
-      if (!table) continue; // unknown type → nothing to link
-      const [row] = await db.select({ label: table.label }).from(table).where(eq(table.id, entityId));
-      if (!row) continue; // entity merged away → skip
-      label = row.label;
-    }
-
+// Link stage: link every entity MENTIONED in this doc to the rest of the graph.
+// We derive entities from the doc's MENTIONS edges (not just attribute_provenance) so an edge whose
+// grounding lives in THIS doc can form even when only ONE endpoint was extracted here. linkEntity is
+// order-independent + idempotent, so this is safe to re-run (see relinkAll).
+async function linkStage(documentId: number): Promise<void> {
+  for (const { entityType, entityId } of await mentionedEntities(documentId)) {
+    const label = await labelOf(entityType, entityId);
+    if (label === null) continue; // merged away / unknown type → skip
     await linkEntity({ type: entityType, id: entityId, label }, documentId);
+  }
+}
+
+// Order-independent re-link sweep. Per-doc linking can only form an edge whose partner already
+// exists when that doc is processed; a relation grounded in an EARLY doc between entities born in a
+// LATER doc therefore never forms (e.g. AFFECTS is grounded in ADR-001 but auth-service is born in
+// HLD). Run this ONCE after all docs are ingested: with the full graph present, re-run linking for
+// every entity mentioned in every doc, grounding each candidate edge in the doc whose text supports
+// it. linkEntity's idempotent upsert makes the re-run safe (existing edges are updated, not dupl'd).
+//
+// documentIds scopes the sweep (default: every document). The eval truncates first so the default is
+// correct there; tests pass their own ids to stay isolated in the shared DB.
+export async function relinkAll(documentIds?: number[]): Promise<void> {
+  const ids = documentIds ?? (await db.select({ id: documents.id }).from(documents)).map((d) => d.id);
+  for (const id of ids) {
+    await linkStage(id);
   }
 }
 

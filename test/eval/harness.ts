@@ -30,7 +30,7 @@ import {
   entityIndex,
 } from "@/lib/db/schema";
 import { extractText } from "@/lib/ingest/extract-text";
-import { advance } from "@/lib/pipeline/run";
+import { advance, relinkAll } from "@/lib/pipeline/run";
 import { runCQ } from "@/lib/query/templates";
 import { linkMention } from "@/lib/search/entity-index";
 import {
@@ -593,6 +593,12 @@ async function main(): Promise<void> {
   log("[eval] === STRATA LIVE EVAL (Task 20) ===");
   await truncateAll();
   await ingestBundle();
+
+  // Order-independent re-link sweep: with all docs now ingested, re-run linking over the full graph
+  // so relations grounded in an early doc between entities born later (e.g. AFFECTS, DEPENDS_ON,
+  // IMPLEMENTS) form regardless of ingest order. Idempotent, so this only adds the missing edges.
+  log("[eval] re-linking across the full graph (order-independent sweep)...");
+  await relinkAll();
 
   log("[eval] computing scorecard...");
   const classification = await scoreClassification(labels);

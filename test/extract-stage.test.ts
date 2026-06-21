@@ -21,15 +21,15 @@ test("extractDoc inserts typed entities + provenance, drops hallucinated fields"
       {
         type: "Requirement",
         label: "REQ-1",
-        fields: { text: { value: "handle 10,000 requests per second", snippet: "handle 10,000 requests per second" } },
+        fields: [{ key: "text", value: "handle 10,000 requests per second", snippet: "handle 10,000 requests per second" }],
       },
       {
         type: "Service",
         label: "auth-service",
-        fields: {
-          description: { value: "written in Go", snippet: "written in Go" },
-          owner: { value: "platform team", snippet: "the database administration group" }, // NOT in rawText → hallucinated
-        },
+        fields: [
+          { key: "description", value: "written in Go", snippet: "written in Go" },
+          { key: "owner", value: "platform team", snippet: "the database administration group" }, // NOT in rawText → hallucinated
+        ],
       },
     ],
   });

@@ -22,7 +22,11 @@ import { SOFTWARE_PACKAGE } from "@/lib/packages/software";
 // it returns are matched against these; unknown keys are ignored).
 const TABLES = {
   System: { table: systems, columns: ["description"] },
-  Feature: { table: features, columns: ["description", "systemId"] },
+  // systemId is a relational FK (set via the PART_OF Feature→System edge), NOT an LLM-extractable
+  // scalar. Listing it let the model return systemId="Helios" (a label), which the inserter then
+  // tried to write into the integer system_id column → insert failure. The Feature→System link is
+  // carried by edges, so the column is intentionally excluded from extraction.
+  Feature: { table: features, columns: ["description"] },
   Requirement: { table: requirements, columns: ["text", "kind", "metric", "targetValue", "priority"] },
   Service: { table: services, columns: ["language", "description", "owner"] },
   Datastore: { table: datastores, columns: ["engine", "purpose"] },
@@ -34,24 +38,37 @@ const TABLES = {
 
 type EntityType = keyof typeof TABLES;
 
+// NOTE: `fields` is modeled as an ARRAY of {key,value,snippet}, not a z.record map. Zod v4's
+// z.record(...) lowers to a JSON Schema of { type:"object", properties:{}, additionalProperties:false },
+// which structurally FORBIDS any keys → the model is forced to return fields:{} and every field is
+// lost. An explicit array round-trips through the SDK's structured-output schema correctly. The
+// array is normalized to the {key: {value,snippet}} record shape immediately after parsing so the
+// rest of extract() is unchanged.
 const ExtractSchema = z.object({
   entities: z.array(
     z.object({
       type: z.string(),
       label: z.string(),
-      fields: z.record(z.string(), z.object({ value: z.string(), snippet: z.string() })),
+      fields: z.array(z.object({ key: z.string(), value: z.string(), snippet: z.string() })),
     }),
   ),
 });
 type ExtractResult = z.infer<typeof ExtractSchema>;
 
+// Normalize the parsed array-of-fields into the {key: {value,snippet}} record the inserter expects.
+function fieldsToRecord(fields: Array<{ key: string; value: string; snippet: string }>): Record<string, { value: string; snippet: string }> {
+  const out: Record<string, { value: string; snippet: string }> = {};
+  for (const f of fields) out[f.key] = { value: f.value, snippet: f.snippet };
+  return out;
+}
+
 export type EntityRef = { type: string; id: number; label: string };
 
 const SYSTEM = `You extract typed entities from a single software-engineering document into a knowledge graph.
 
-Return ONLY entities of the requested types. For each entity give a short identifying "label", and a "fields" object mapping each relevant field name to { value, snippet }.
+Return ONLY entities of the requested types. For each entity give a short identifying "label", and a "fields" ARRAY where each element is { key, value, snippet } — "key" is one of the field names listed for that entity type.
 
-CRITICAL provenance rule: every field's "snippet" MUST be an EXACT verbatim substring copied character-for-character from the document text. Do not paraphrase, summarize, or reformat a snippet. "value" is the cleaned/normalized value you read; "snippet" is the literal source text that supports it. If you cannot find a verbatim snippet for a field, omit that field entirely.`;
+CRITICAL provenance rule: every field's "snippet" MUST be an EXACT verbatim substring copied character-for-character from the document text. Do not paraphrase, summarize, or reformat a snippet. "value" is the cleaned/normalized value you read; "snippet" is the literal source text that supports it. If you cannot find a verbatim snippet for a field, omit that field entirely (leave it out of the array).`;
 
 function buildUserPrompt(docType: string, types: EntityType[], rawText: string): string {
   const typeLines = types
@@ -86,7 +103,7 @@ export async function extractDoc(documentId: number): Promise<EntityRef[]> {
     const spec = TABLES[entity.type as EntityType];
     if (!spec) continue; // ignore an entity type we didn't ask for / don't model
 
-    const ref = await insertEntity(entity.type as EntityType, entity.label, entity.fields, doc.id, doc.rawText);
+    const ref = await insertEntity(entity.type as EntityType, entity.label, fieldsToRecord(entity.fields), doc.id, doc.rawText);
     refs.push(ref);
   }
   return refs;

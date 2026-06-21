@@ -41,8 +41,8 @@ test("a software doc runs the full pipeline (classify→index→extract→resolv
       // extract stage
       return {
         entities: [
-          { type: "System", label: sysLabel, fields: { description: { value: "ships checkout", snippet: "ships checkout" } } },
-          { type: "Feature", label: featLabel, fields: { description: { value: "is part of", snippet: "is part of" } } },
+          { type: "System", label: sysLabel, fields: [{ key: "description", value: "ships checkout", snippet: "ships checkout" }] },
+          { type: "Feature", label: featLabel, fields: [{ key: "description", value: "is part of", snippet: "is part of" }] },
         ],
       } as never;
     }

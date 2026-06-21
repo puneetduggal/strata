@@ -188,6 +188,29 @@ test("idempotency: linking the same grounded candidate twice yields exactly ONE 
   expect(rows[0].confidence).toBeCloseTo(0.92, 5);
 });
 
+test("strongest grounding wins: a weaker later proposal does NOT clobber a strong earlier edge", async () => {
+  const suffix = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+  const snippet = `T-${suffix} fully verifies REQ-${suffix} per the matrix.`;
+  const { doc, req, testEntity, reqLabel } = await fixture(suffix, snippet);
+
+  // First: strong, explicit grounding → active edge at 0.9.
+  mockCandidates([
+    { relationType: "VERIFIES", otherEntityLabel: reqLabel, direction: "out", confidence: 0.9, snippet },
+  ]);
+  await linkEntity({ type: "Test", id: testEntity.id, label: testEntity.label }, doc.id);
+
+  // Second: a weak co-occurrence (e.g. both names listed together in another doc) at 0.3.
+  mockCandidates([
+    { relationType: "VERIFIES", otherEntityLabel: reqLabel, direction: "out", confidence: 0.3, snippet },
+  ]);
+  await linkEntity({ type: "Test", id: testEntity.id, label: testEntity.label }, doc.id);
+
+  const rows = await findVerifiesEdge(testEntity.id, req.id);
+  expect(rows).toHaveLength(1);
+  expect(rows[0].confidence).toBeCloseTo(0.9, 5); // strong grounding retained, NOT downgraded to 0.3
+  expect(rows[0].active).toBe(true);
+});
+
 test("alias resolution + threshold env: an aliased partner label resolves and LINK_THRESHOLD gates active", async () => {
   const suffix = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
   const snippet = `T-${suffix} verifies the latency requirement REQ-${suffix}.`;

@@ -109,7 +109,7 @@ async function upsertEdge(row: {
   snippet: string;
 }): Promise<void> {
   const [existing] = await db
-    .select({ id: edges.id })
+    .select({ id: edges.id, confidence: edges.confidence })
     .from(edges)
     .where(
       and(
@@ -122,6 +122,11 @@ async function upsertEdge(row: {
     );
 
   if (existing) {
+    // Keep the STRONGEST grounding. The same edge can be proposed from several docs (relinkAll
+    // sweeps every doc), each grounding it in its own text. Only overwrite when THIS proposal is
+    // more confident than what's stored — otherwise a weak co-occurrence in a later-processed doc
+    // would clobber an earlier strong, explicit grounding down to inactive (order-dependence bug).
+    if (row.confidence <= existing.confidence) return;
     await db
       .update(edges)
       .set({

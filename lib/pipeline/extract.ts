@@ -31,7 +31,7 @@ const TABLES = {
   Service: { table: services, columns: ["language", "description", "owner"] },
   Datastore: { table: datastores, columns: ["engine", "purpose"] },
   Test: { table: tests, columns: ["kind", "description"] },
-  LoadTestResult: { table: loadTestResults, columns: ["scenario", "metric", "observedValue", "targetValue"] },
+  LoadTestResult: { table: loadTestResults, columns: ["scenario", "metric", "observedValue", "targetValue", "passed"] },
   Decision: { table: decisions, columns: ["status", "rationale"] },
   Person: { table: persons, columns: ["role"] },
 } as const;
@@ -63,6 +63,20 @@ function fieldsToRecord(fields: Array<{ key: string; value: string; snippet: str
 }
 
 export type EntityRef = { type: string; id: number; label: string };
+
+// The model returns every field value as a string. For a typed column whose Drizzle dataType is
+// boolean (only LoadTestResult.passed today), coerce that string to a real boolean. An unparseable
+// value returns undefined so the caller DROPS the field rather than writing garbage into the column.
+const TRUTHY = new Set(["true", "t", "yes", "y", "1", "pass", "passed", "met"]);
+const FALSY = new Set(["false", "f", "no", "n", "0", "fail", "failed", "missed", "not met", "did not pass"]);
+function coerceValue(table: { [k: string]: unknown }, field: string, value: string): unknown {
+  const col = table[field] as { dataType?: string } | undefined;
+  if (col?.dataType !== "boolean") return value;
+  const v = value.trim().toLowerCase();
+  if (TRUTHY.has(v)) return true;
+  if (FALSY.has(v)) return false;
+  return undefined; // unparseable boolean → signal "drop this field"
+}
 
 const SYSTEM = `You extract typed entities from a single software-engineering document into a knowledge graph.
 
@@ -124,17 +138,19 @@ async function insertEntity(
   // 1) Decide which fields are KEPT: a real column for this table AND its snippet locates.
   //    An unlocatable (hallucinated) field is dropped — its column never gets set and no
   //    provenance row is written.
-  const kept: Array<{ field: string; value: string; snippet: string; charStart: number; charEnd: number }> = [];
+  const kept: Array<{ field: string; value: string; coerced: unknown; snippet: string; charStart: number; charEnd: number }> = [];
   for (const [field, fv] of Object.entries(fields)) {
     if (!columns.includes(field)) continue; // unknown key → ignore
     const span = locateSpan(rawText, fv.snippet);
     if (!span) continue; // unlocatable → drop the field entirely
-    kept.push({ field, value: fv.value, snippet: fv.snippet, ...span });
+    const coerced = coerceValue(spec.table as unknown as { [k: string]: unknown }, field, fv.value);
+    if (coerced === undefined) continue; // typed value the model couldn't express (e.g. non-boolean for a boolean col) → drop
+    kept.push({ field, value: fv.value, coerced, snippet: fv.snippet, ...span });
   }
 
-  // 2) Insert the entity row with label + ONLY the kept columns.
+  // 2) Insert the entity row with label + ONLY the kept columns (typed-coerced values).
   const row: Record<string, unknown> = { label };
-  for (const k of kept) row[k.field] = k.value;
+  for (const k of kept) row[k.field] = k.coerced;
   const [inserted] = await db.insert(spec.table).values(row as never).returning({ id: spec.table.id });
 
   // 3) Provenance row per kept field.

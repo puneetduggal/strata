@@ -24,11 +24,24 @@ export async function embed(texts: string[]): Promise<number[][]> {
   await throttle();
 
   for (let attempt = 0; ; attempt++) {
-    const res = await fetch("https://api.voyageai.com/v1/embeddings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.VOYAGE_API_KEY}` },
-      body: JSON.stringify({ input: texts, model: "voyage-3" }),
-    });
+    let res: Response;
+    try {
+      res = await fetch("https://api.voyageai.com/v1/embeddings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.VOYAGE_API_KEY}` },
+        body: JSON.stringify({ input: texts, model: "voyage-3" }),
+      });
+    } catch (err) {
+      // NETWORK-level failure: fetch() itself rejected ("fetch failed", ECONNRESET, DNS, timeout, …)
+      // before any HTTP response. Under the free-tier throttle these transient drops are common; treat
+      // them like a 429/5xx and retry with the same exponential backoff. On exhaustion, re-throw the
+      // real error so a persistent failure is NOT masked.
+      if (attempt < MAX_RETRIES) {
+        await sleep(Math.min(20_000 * 2 ** attempt, 90_000));
+        continue;
+      }
+      throw err;
+    }
 
     if (res.ok) {
       const json = (await res.json()) as { data: { embedding: number[] }[] };

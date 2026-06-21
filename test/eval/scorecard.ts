@@ -64,7 +64,7 @@ export type Scorecard = {
   };
   resolution: {
     pr: PR; // "one node per real-world thing"
-    detail: Array<{ key: string; expected: 1; found: number; verdict: string }>;
+    detail: Array<{ key: string; expected: number; found: number; verdict: string }>;
   };
   linking: {
     cases: Array<{ mention: string; expectedLabel: string; gotLabel: string | null; ok: boolean }>;
@@ -117,7 +117,7 @@ export function formatScorecard(sc: Scorecard): string {
   // --- Resolution ---
   out.push(bar("3. Entity-resolution P/R  (\"one node per real-world thing\")"));
   for (const d of sc.resolution.detail) {
-    out.push(`  ${d.verdict.padEnd(12)} ${d.key.padEnd(28)} expected=1 found=${d.found}`);
+    out.push(`  ${d.verdict.padEnd(12)} ${d.key.padEnd(28)} expected=${d.expected} found=${d.found}`);
   }
   out.push(`  -> P=${f3(sc.resolution.pr.precision)} R=${f3(sc.resolution.pr.recall)} F1=${f3(sc.resolution.pr.f1)}  (tp=${sc.resolution.pr.tp} fp=${sc.resolution.pr.fp} fn=${sc.resolution.pr.fn})`);
 

@@ -68,7 +68,9 @@ const SYSTEM = `You extract typed entities from a single software-engineering do
 
 Return ONLY entities of the requested types. For each entity give a short identifying "label", and a "fields" ARRAY where each element is { key, value, snippet } — "key" is one of the field names listed for that entity type.
 
-CRITICAL provenance rule: every field's "snippet" MUST be an EXACT verbatim substring copied character-for-character from the document text. Do not paraphrase, summarize, or reformat a snippet. "value" is the cleaned/normalized value you read; "snippet" is the literal source text that supports it. If you cannot find a verbatim snippet for a field, omit that field entirely (leave it out of the array).`;
+CRITICAL provenance rule: every field's "snippet" MUST be an EXACT verbatim substring copied character-for-character from the document text. Do not paraphrase, summarize, or reformat a snippet. "value" is the cleaned/normalized value you read; "snippet" is the literal source text that supports it. If you cannot find a verbatim snippet for a field, omit that field entirely (leave it out of the array).
+
+Labeling rule: When the document gives an entity a short canonical identifier or code (e.g. an ADR id like \`ADR-001\`, a requirement id like \`REQ-3\`, a test id like \`T1\`, or a named test like \`login load test\`), use that identifier as the entity's \`label\`, and put the longer descriptive text in the appropriate descriptive field (description/text/rationale/scenario). Prefer one entity per real-world thing — e.g. a single load-test run is ONE LoadTestResult with its metrics as fields, not one per metric. Entities that legitimately have a descriptive name (a Feature like "User Authentication", a Service like "auth-service") keep that name as their label.`;
 
 function buildUserPrompt(docType: string, types: EntityType[], rawText: string): string {
   const typeLines = types

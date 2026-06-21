@@ -4,6 +4,9 @@ Author: Mei Tanaka (Performance Engineer)
 Date: 2026-03-18
 Status: Final
 
+This report covers ONE load-test run: the "login load test". Its single result is captured
+below, with both throughput and p99 latency recorded as metrics of that one run.
+
 1. Scenario
 
 login load test: a sustained load test of the Helios login endpoint, ramping concurrent
@@ -16,15 +19,16 @@ p99 < 200 ms. The target value is 10,000 requests/second at p99 < 200 ms.
 
 3. Observed Results
 
-The login load test reached 8,000 req/s against the 10,000 req/s target. Observed
-throughput was 8,000 requests/second. Observed p99 latency was 250 ms against the
-< 200 ms target.
+The login load test's single result: observed throughput 8,000 requests/second against
+the 10,000 requests/second target, with observed p99 latency 250 ms against the < 200 ms
+target. Both numbers are metrics of this one run, not separate results.
 
 4. Verdict
 
 Result: FAILED. The login load test missed the target. Observed throughput of 8,000
 requests/second is below the 10,000 requests/second target, and observed p99 latency of
-250 ms exceeds the 200 ms target. The login endpoint did NOT meet the PRD target.
+250 ms exceeds the 200 ms target. The login endpoint did NOT meet the PRD target, so this
+run validates the REQ-4 target as not yet satisfied.
 
 5. Follow-up
 

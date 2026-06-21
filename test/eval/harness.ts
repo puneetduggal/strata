@@ -281,8 +281,10 @@ async function scoreResolution(labels: Labels): Promise<Scorecard["resolution"]>
   for (const type of Object.keys(labels.entities) as TypeName[]) {
     const live = await liveEntities(type);
     const aliases = await aliasMap(type);
+    const matchedLiveIds = new Set<number>();
     for (const gold of labels.entities[type]) {
       const nodes = matchNodes(live, aliases, gold.label);
+      for (const n of nodes) matchedLiveIds.add(n.id);
       const found = nodes.length;
       let verdict: string;
       if (found === 1) {
@@ -297,6 +299,15 @@ async function scoreResolution(labels: Labels): Promise<Scorecard["resolution"]>
         fp += found - 1; // …but extra copies are false positives (resolution failed to merge)
       }
       detail.push({ key: `${type}:${gold.label}`, expected: 1, found, verdict });
+    }
+    // SPURIOUS live nodes: a live node of this type matching NO labeled entity is a resolution
+    // false positive (same `extra` set the extraction scorer computes). Without this, precision
+    // could read 1.0 while spurious nodes exist.
+    for (const n of live) {
+      if (!matchedLiveIds.has(n.id)) {
+        fp++;
+        detail.push({ key: `${type}:${n.label}`, expected: 0, found: 1, verdict: "SPURIOUS" });
+      }
     }
   }
   return { pr: prf(tp, fp, fn), detail };
@@ -458,13 +469,19 @@ async function compareCQ(
       // gold: { svcLabel: {noDesignDoc,noLoadTest} }. rows carry label + booleans.
       let ok = true;
       const notes: string[] = [];
-      for (const [svc, g] of Object.entries(gold as Record<string, any>)) {
+      const goldMap = gold as Record<string, any>;
+      for (const [svc, g] of Object.entries(goldMap)) {
         const row = rows.find((r) => norm(r.label) === norm(svc));
         if (!row) { ok = false; notes.push(`${svc}:missing`); continue; }
         if (Boolean(row.noDesignDoc) !== g.noDesignDoc || Boolean(row.noLoadTest) !== g.noLoadTest) {
           ok = false;
           notes.push(`${svc}:{dd=${row.noDesignDoc},lt=${row.noLoadTest}} want {dd=${g.noDesignDoc},lt=${g.noLoadTest}}`);
         }
+      }
+      // Spurious services: a live coverage row whose label is not in the gold map.
+      const goldLabels = new Set(Object.keys(goldMap).map(norm));
+      for (const row of rows) {
+        if (!goldLabels.has(norm(row.label))) { ok = false; notes.push(`${row.label}:spurious`); }
       }
       return { ok, note: ok ? undefined : notes.join(" ") };
     }
@@ -498,8 +515,17 @@ async function compareCQ(
       const r = rows[0];
       const g = gold as Record<string, any>;
       if (!r) return { ok: false, note: "no loadtest row" };
+      // The verdict must be COMPUTED from extracted data. A NULL/never-extracted `passed` means the
+      // verdict was never determined → FAIL (don't let Boolean(null)===false sneak a pass through).
+      if (r.passed === null || r.passed === undefined) {
+        return { ok: false, note: `passed not extracted (null) obs="${r.observedValue}"` };
+      }
       const passedOk = Boolean(r.passed) === g.passed;
-      const obsOk = norm(String(r.observedValue ?? "")).includes("8,000") || norm(String(r.observedValue ?? "")) === norm(g.observedValue);
+      // Compare observed structurally to the golden observedValue (no hardcoded literal): the
+      // free-text wording varies, so accept either-contains-the-other on the normalized strings.
+      const obsLive = norm(String(r.observedValue ?? ""));
+      const obsGold = norm(String(g.observedValue ?? ""));
+      const obsOk = obsLive.length > 0 && (obsLive === obsGold || obsLive.includes(obsGold) || obsGold.includes(obsLive));
       const ok = passedOk && obsOk;
       return { ok, note: ok ? undefined : `passed=${r.passed} obs="${r.observedValue}"` };
     }

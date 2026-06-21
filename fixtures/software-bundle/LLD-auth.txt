@@ -1,0 +1,33 @@
+Low-Level Design: auth-service
+
+Author: Alice Chen (Staff Engineer)
+Date: 2026-02-25
+Status: Reviewed
+
+1. Purpose
+
+This low-level design describes the internals of the auth-service. The auth-service
+implements sign-in and password reset for Helios. It is written in Go.
+
+2. Datastore Access
+
+auth-service uses user-db as its system of record for accounts. On sign-in, auth-service
+reads the password hash from user-db and verifies it. On password reset, auth-service
+writes a new password hash to user-db. user-db is a PostgreSQL database.
+
+3. Token Flow
+
+After a successful password check, auth-service calls token-service to mint a JWT session
+token. auth-service depends on token-service for minting and verifying tokens; this is a
+synchronous call from auth-service to token-service over gRPC.
+
+4. Endpoints
+
+- POST /login: verifies email and password against user-db, then calls token-service.
+- POST /password-reset: emails a reset link and, on confirmation, writes to user-db.
+
+5. Owner
+
+The auth-service is owned by Alice Chen.
+
+Note: payment functionality is handled by a separate service and is not described here.

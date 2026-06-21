@@ -1,0 +1,41 @@
+Implementation Plan: Helios Launch
+
+Author: Ravi Kumar (Engineering Lead)
+Date: 2026-03-04
+Status: In progress
+
+1. Scope
+
+This plan maps the Helios requirements to the services that implement them and the tests
+that verify them.
+
+2. Service-to-Requirement Mapping
+
+auth-service implements REQ-1: users authenticate with email and password.
+auth-service implements REQ-3: users reset their password via an emailed link.
+auth-service implements REQ-4: the login endpoint sustains 10,000 requests/second at p99 < 200 ms.
+
+payment-service implements REQ-2: users complete a payment with a saved card.
+
+So the auth-service implements REQ-1, REQ-3, and REQ-4, while the payment-service implements REQ-2.
+
+Cross-service dependency: to charge a saved card the payment-service first confirms the
+caller is signed in, so payment-service calls auth-service on every payment. In other words,
+payment-service depends on auth-service, and the dependency is a synchronous call.
+
+3. Test Plan
+
+T1 - login integration test: an integration test that signs in with email and password and
+asserts a session is returned. T1 verifies REQ-1.
+
+T2 - payment flow test: an integration test that completes a payment with a saved card and
+asserts the charge succeeds. T2 verifies REQ-2.
+
+Coverage note: REQ-3 (password reset) has no automated test yet. REQ-4 (the login
+throughput NFR) is exercised only by the load test, not by a functional verification test.
+
+4. Sequencing
+
+Phase 1: stand up auth-service and token-service, wire user-db, ship REQ-1 and REQ-4.
+Phase 2: ship REQ-3 (password reset).
+Phase 3: stand up payment-service and ship REQ-2.

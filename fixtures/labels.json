@@ -1,0 +1,195 @@
+{
+  "_about": "Ground-truth labels for the Strata software-dev fixture bundle (fixtures/software-bundle/*). The live eval (Task 20) ingests these docs through the real pipeline and scores the resulting graph + CQ answers against this file. Entity/link key fields use the DB column names from lib/db/schema.ts. CQ golden answers are derived by reasoning each lib/query/templates.ts template against the graph below.",
+
+  "system": "Helios",
+
+  "classification": {
+    "PRD.txt":      { "docType": "PRD",               "domain": "software_dev" },
+    "HLD.txt":      { "docType": "HLD",               "domain": "software_dev" },
+    "LLD-auth.txt": { "docType": "LLD",               "domain": "software_dev" },
+    "ADR-001.txt":  { "docType": "ADR",               "domain": "software_dev" },
+    "impl-plan.txt":{ "docType": "impl_plan",         "domain": "software_dev" },
+    "loadtest.txt": { "docType": "load_test_report",  "domain": "software_dev" },
+    "resume.txt":   { "docType": "resume",            "domain": "hiring" }
+  },
+
+  "entities": {
+    "System": [
+      { "label": "Helios", "description": "The company's payments platform.", "sourceDocs": ["PRD.txt"] }
+    ],
+
+    "Feature": [
+      { "label": "User Authentication", "description": "How a customer proves who they are before transacting.", "sourceDocs": ["PRD.txt"] },
+      { "label": "Payment Processing",  "description": "How a customer pays a merchant once authenticated.",     "sourceDocs": ["PRD.txt"] }
+    ],
+
+    "Requirement": [
+      { "label": "REQ-1", "text": "Users authenticate with email and password.",                    "kind": "functional", "priority": "must-have",   "metric": null, "targetValue": null, "sourceDocs": ["PRD.txt", "impl-plan.txt"] },
+      { "label": "REQ-2", "text": "Users complete a payment with a saved card.",                     "kind": "functional", "priority": "must-have",   "metric": null, "targetValue": null, "sourceDocs": ["PRD.txt", "impl-plan.txt"] },
+      { "label": "REQ-3", "text": "Users reset their password via an emailed link.",                 "kind": "functional", "priority": "should-have", "metric": null, "targetValue": null, "sourceDocs": ["PRD.txt", "impl-plan.txt"] },
+      { "label": "REQ-4", "text": "The login endpoint sustains 10,000 requests/second at p99 < 200 ms.", "kind": "nfr", "priority": "must-have", "metric": "login throughput and p99 latency", "targetValue": "10,000 requests/second at p99 < 200 ms", "sourceDocs": ["PRD.txt", "impl-plan.txt"] }
+    ],
+
+    "Service": [
+      { "label": "auth-service",    "language": "Go", "owner": "Alice Chen", "description": "Handles sign-in and password reset for Helios.", "sourceDocs": ["HLD.txt", "LLD-auth.txt", "impl-plan.txt"] },
+      { "label": "token-service",   "language": "Go", "owner": null,         "description": "Infrastructure service that mints and verifies session tokens.", "sourceDocs": ["HLD.txt", "LLD-auth.txt"] },
+      { "label": "payment-service", "language": null, "owner": null,         "description": "Handles payment traffic for Helios.", "sourceDocs": ["impl-plan.txt"], "note": "Deliberately absent from HLD/LLD so noDesignDoc=true." }
+    ],
+
+    "Datastore": [
+      { "label": "user-db", "engine": "PostgreSQL", "purpose": "System of record for user accounts/credentials.", "sourceDocs": ["HLD.txt", "LLD-auth.txt"] }
+    ],
+
+    "Decision": [
+      { "label": "ADR-001", "status": "Accepted", "rationale": "JWT lets the auth-service and downstream services validate a session statelessly, avoiding a round trip to a central session store on every request.", "summary": "Adopt JWT for session tokens.", "sourceDocs": ["ADR-001.txt", "HLD.txt"] }
+    ],
+
+    "Person": [
+      { "label": "Alice Chen", "role": "Staff Engineer", "sourceDocs": ["HLD.txt", "LLD-auth.txt"] }
+    ],
+
+    "Test": [
+      { "label": "T1", "kind": "integration", "description": "login integration test: signs in with email and password and asserts a session is returned.", "sourceDocs": ["impl-plan.txt"] },
+      { "label": "T2", "kind": "integration", "description": "payment flow test: completes a payment with a saved card and asserts the charge succeeds.", "sourceDocs": ["impl-plan.txt"] }
+    ],
+
+    "LoadTestResult": [
+      { "label": "login load test", "scenario": "Sustained load test of the Helios login endpoint (POST /login).", "metric": "throughput (req/s) and p99 latency", "observedValue": "8,000 requests/second; p99 250 ms", "targetValue": "10,000 requests/second; p99 < 200 ms", "passed": false, "sourceDocs": ["loadtest.txt"] }
+    ]
+  },
+
+  "links": [
+    { "relationType": "PART_OF",    "source": "User Authentication", "target": "Helios",  "sourceType": "Feature",        "targetType": "System",      "groundedIn": "PRD.txt" },
+    { "relationType": "PART_OF",    "source": "Payment Processing",  "target": "Helios",  "sourceType": "Feature",        "targetType": "System",      "groundedIn": "PRD.txt" },
+
+    { "relationType": "SPECIFIES",  "source": "REQ-1", "target": "User Authentication", "sourceType": "Requirement", "targetType": "Feature", "groundedIn": "PRD.txt" },
+    { "relationType": "SPECIFIES",  "source": "REQ-3", "target": "User Authentication", "sourceType": "Requirement", "targetType": "Feature", "groundedIn": "PRD.txt" },
+    { "relationType": "SPECIFIES",  "source": "REQ-4", "target": "User Authentication", "sourceType": "Requirement", "targetType": "Feature", "groundedIn": "PRD.txt" },
+    { "relationType": "SPECIFIES",  "source": "REQ-2", "target": "Payment Processing",  "sourceType": "Requirement", "targetType": "Feature", "groundedIn": "PRD.txt" },
+
+    { "relationType": "IMPLEMENTS", "source": "auth-service",    "target": "REQ-1", "sourceType": "Service", "targetType": "Requirement", "groundedIn": "impl-plan.txt" },
+    { "relationType": "IMPLEMENTS", "source": "auth-service",    "target": "REQ-3", "sourceType": "Service", "targetType": "Requirement", "groundedIn": "impl-plan.txt" },
+    { "relationType": "IMPLEMENTS", "source": "auth-service",    "target": "REQ-4", "sourceType": "Service", "targetType": "Requirement", "groundedIn": "impl-plan.txt" },
+    { "relationType": "IMPLEMENTS", "source": "payment-service", "target": "REQ-2", "sourceType": "Service", "targetType": "Requirement", "groundedIn": "impl-plan.txt" },
+
+    { "relationType": "DEPENDS_ON", "source": "auth-service",    "target": "token-service", "kind": "CALLS", "sourceType": "Service", "targetType": "Service", "groundedIn": "HLD.txt" },
+    { "relationType": "DEPENDS_ON", "source": "payment-service", "target": "auth-service",  "kind": "CALLS", "sourceType": "Service", "targetType": "Service", "groundedIn": "impl-plan.txt" },
+
+    { "relationType": "USES",       "source": "auth-service", "target": "user-db", "sourceType": "Service", "targetType": "Datastore", "groundedIn": "LLD-auth.txt" },
+
+    { "relationType": "VERIFIES",   "source": "T1", "target": "REQ-1", "sourceType": "Test", "targetType": "Requirement", "groundedIn": "impl-plan.txt" },
+    { "relationType": "VERIFIES",   "source": "T2", "target": "REQ-2", "sourceType": "Test", "targetType": "Requirement", "groundedIn": "impl-plan.txt" },
+
+    { "relationType": "VALIDATES",  "source": "login load test", "target": "REQ-4", "sourceType": "LoadTestResult", "targetType": "Requirement", "groundedIn": "loadtest.txt" },
+
+    { "relationType": "AFFECTS",    "source": "ADR-001", "target": "auth-service", "sourceType": "Decision", "targetType": "Service", "groundedIn": "ADR-001.txt" },
+
+    { "relationType": "OWNS",       "source": "Alice Chen", "target": "auth-service", "sourceType": "Person", "targetType": "Service", "groundedIn": "HLD.txt" }
+  ],
+
+  "cqAnswers": {
+    "Q1": {
+      "template": "requirements_without_test",
+      "question": "Which requirements have no verifying test?",
+      "params": {},
+      "answer": ["REQ-3", "REQ-4"],
+      "derivation": "VERIFIES edges exist only from T1->REQ-1 and T2->REQ-2. REQ-3 and REQ-4 have no incoming VERIFIES edge. REQ-4 is only VALIDATES'd by the load test, which is not a VERIFIES test. So the anti-join returns {REQ-3, REQ-4}."
+    },
+
+    "Q2": {
+      "template": "services_coverage_gaps",
+      "question": "Which services have no design doc / no load test?",
+      "params": {},
+      "answer": {
+        "auth-service":    { "noDesignDoc": false, "noLoadTest": false },
+        "token-service":   { "noDesignDoc": false, "noLoadTest": true },
+        "payment-service": { "noDesignDoc": true,  "noLoadTest": true }
+      },
+      "derivation": "noDesignDoc = no MENTIONS edge into the service from a chunk whose document is HLD/LLD/ARD. auth-service and token-service both appear verbatim in HLD.txt and LLD-auth.txt -> false; payment-service appears in no HLD/LLD -> true. noLoadTest = no VALIDATES edge from a LoadTestResult to any requirement the service IMPLEMENTS. auth-service IMPLEMENTS REQ-4 which the login load test VALIDATES -> false; token-service IMPLEMENTS nothing -> true; payment-service IMPLEMENTS REQ-2 (not load-tested) -> true."
+    },
+
+    "Q3": {
+      "template": "service_blast_radius",
+      "question": "What depends on token-service / what breaks if it changes?",
+      "params": { "service": "token-service" },
+      "answer": ["auth-service", "payment-service"],
+      "derivation": "Incoming DEPENDS_ON, transitive. auth-service -> token-service (direct dependent). payment-service -> auth-service -> token-service (transitive dependent). So the blast radius of token-service is {auth-service, payment-service}."
+    },
+
+    "Q4": {
+      "template": "feature_chain",
+      "question": "Show the PRD->LLD->impl->load-test chain for Feature User Authentication.",
+      "params": { "feature": "User Authentication" },
+      "answer": {
+        "requirements": ["REQ-1", "REQ-3", "REQ-4"],
+        "services": ["auth-service"],
+        "tests": ["T1"],
+        "loadTestResults": ["login load test"]
+      },
+      "derivation": "requirements = those that SPECIFY F1 = {REQ-1, REQ-3, REQ-4}. services = those that IMPLEMENT any of those reqs = auth-service (implements REQ-1/3/4). tests = VERIFIES into those reqs = T1 (verifies REQ-1). loadTestResults = VALIDATES into those reqs = login load test (validates REQ-4). REQ-2/T2/payment-service belong to F2 and are excluded."
+    },
+
+    "Q5": {
+      "template": "service_datastore",
+      "question": "What datastore does auth-service use?",
+      "params": { "service": "auth-service" },
+      "answer": ["user-db"],
+      "derivation": "USES edges from auth-service: auth-service -> user-db. So the answer is {user-db}."
+    },
+
+    "Q6": {
+      "template": "loadtest_vs_target",
+      "question": "Did the load test meet the PRD target for REQ-4?",
+      "params": { "requirement": "REQ-4" },
+      "answer": {
+        "verdict": "missed",
+        "passed": false,
+        "observedValue": "8,000 requests/second; p99 250 ms",
+        "targetValue": "10,000 requests/second; p99 < 200 ms"
+      },
+      "derivation": "The login load test VALIDATES REQ-4. Observed 8,000 req/s < target 10,000 req/s, and observed p99 250 ms > target 200 ms, so passed=false -> the target was MISSED."
+    },
+
+    "Q7": {
+      "template": "service_decisions",
+      "question": "What decisions affected auth-service, and why?",
+      "params": { "service": "auth-service" },
+      "answer": [
+        { "decision": "ADR-001", "summary": "Adopt JWT for session tokens.", "status": "Accepted", "rationale": "JWT lets auth-service and downstream services validate a session statelessly, avoiding a central-session-store round trip per request, keeping the hot sign-in path fast under the 10,000 req/s target." }
+      ],
+      "derivation": "AFFECTS edges into auth-service: ADR-001 -> auth-service. So the answer is ADR-001 (JWT) with its rationale."
+    },
+
+    "Q8": {
+      "template": "service_owner",
+      "question": "Who owns auth-service?",
+      "params": { "service": "auth-service" },
+      "answer": ["Alice Chen"],
+      "derivation": "OWNS edges into auth-service: Alice Chen -> auth-service. So the owner is Alice Chen (Staff Engineer)."
+    },
+
+    "Q9": {
+      "template": "feature_blast_radius",
+      "question": "If Feature User Authentication changes, what is the full blast radius?",
+      "params": { "feature": "User Authentication" },
+      "answer": {
+        "requirements": ["REQ-1", "REQ-3", "REQ-4"],
+        "services": ["auth-service", "payment-service"],
+        "tests": ["T1"],
+        "loadTestResults": ["login load test"]
+      },
+      "derivation": "Impacted requirements = SPECIFIES F1 = {REQ-1, REQ-3, REQ-4}. Implementing services = auth-service. Transitive incoming DEPENDS_ON dependents of auth-service = payment-service (payment-service -> auth-service). So services = {auth-service, payment-service}. Verification artifacts on the impacted requirements: VERIFIES tests = T1 (REQ-1); VALIDATES loadtests = login load test (REQ-4). T2 verifies REQ-2 (F2) and is NOT included."
+    },
+
+    "Q10": {
+      "template": "dependency_path",
+      "question": "How does payment-service transitively depend on token-service?",
+      "params": { "source": "payment-service", "target": "token-service" },
+      "answer": {
+        "forward": ["payment-service", "auth-service", "token-service"],
+        "reverse": []
+      },
+      "derivation": "Outgoing DEPENDS_ON from payment-service: payment-service -> auth-service -> token-service, giving the ordered path [payment-service, auth-service, token-service]. The reverse query (token-service depends on payment-service) has no outgoing DEPENDS_ON path -> empty."
+    }
+  }
+}

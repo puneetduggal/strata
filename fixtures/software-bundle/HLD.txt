@@ -1,0 +1,39 @@
+High-Level Design: Helios Authentication
+
+Author: Alice Chen (Staff Engineer)
+Date: 2026-02-18
+Status: Reviewed
+
+1. Scope
+
+This high-level design covers how Helios authenticates users. It describes the
+auth-service, the token-service it relies on, and the user-db datastore that backs
+sign-in. Payment-side design is out of scope for this document.
+
+2. Services
+
+auth-service is the service that handles sign-in for Helios. auth-service is owned by
+Alice Chen. The auth-service is written in Go.
+
+token-service is an infrastructure service that mints and verifies session tokens. The
+token-service is written in Go.
+
+To authenticate a user, auth-service calls token-service to mint a session token after
+the password check succeeds. In other words, auth-service depends on token-service, and
+the dependency is a synchronous call. The auth-service depends on the token-service for
+all token operations.
+
+3. Datastore
+
+auth-service uses user-db to store and read user credentials. user-db is a PostgreSQL
+database. The auth-service reads and writes account rows in user-db on every sign-in.
+
+4. Key Design Decision
+
+For session tokens we have decided to adopt JWT. This decision affects the auth-service,
+which issues and validates the tokens. The rationale and full record are captured in
+ADR-001.
+
+5. Ownership
+
+Alice Chen owns the auth-service and is the on-call escalation point for sign-in incidents.

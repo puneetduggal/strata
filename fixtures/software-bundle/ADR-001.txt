@@ -1,0 +1,27 @@
+ADR-001: Adopt JWT for session tokens
+
+Author: Alice Chen (Staff Engineer)
+Date: 2026-02-10
+Status: Accepted
+
+Context
+
+Helios needs a session-token format for the sign-in flow. We evaluated opaque server-side
+session tokens against self-contained JSON Web Tokens (JWT).
+
+Decision
+
+We decided to adopt JWT for session tokens. The decision is ACCEPTED.
+
+Rationale
+
+JWT lets the auth-service and downstream services validate a session statelessly, without a
+round trip to a central session store on every request. This keeps the hot sign-in path fast
+and avoids a shared session datastore becoming a bottleneck under the 10,000 requests/second
+target.
+
+Consequences
+
+This decision affects the auth-service, which is the service that issues and validates the
+session tokens. The auth-service must rotate signing keys and enforce short token lifetimes.
+No other service is impacted by this decision at this time.

@@ -1,21 +1,24 @@
-import Link from "next/link";
+import { TopBar } from "@/components/shell/top-bar";
 import UploadDropzone from "@/components/upload-dropzone";
 
+// Upload & ingest (catalog 01). The 60px icon rail and the <main> wrapper
+// live in the global app shell (app/layout.tsx).
 export default function UploadPage() {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Upload documents</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Each file is ingested, classified, then indexed into the knowledge graph.
-          </p>
+    <>
+      <TopBar
+        leaf="Upload"
+        right={
+          <span className="font-mono text-[11px] text-text-3">
+            single workspace · no auth (v1)
+          </span>
+        }
+      />
+      <div className="flex-1 overflow-auto p-[26px_30px]">
+        <div className="grid h-full grid-cols-2 gap-6">
+          <UploadDropzone />
         </div>
-        <Link href="/" className="text-sm font-medium text-blue-600 hover:underline">
-          Dashboard →
-        </Link>
       </div>
-      <UploadDropzone />
-    </main>
+    </>
   );
 }

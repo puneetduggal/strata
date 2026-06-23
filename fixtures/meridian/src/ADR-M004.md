@@ -27,8 +27,10 @@ source of truth removes the reconciliation logic entirely.
   orders-db. ADR-M004 affects order-service.
 - This decision affects notification-service: notification-service now uses
   orders-db directly as a reader (USES). ADR-M004 affects notification-service.
-- order-service and notification-service share the orders-db datastore
-  (SHARES_DATA): order-service shares its order data with notification-service
-  through the shared orders-db.
+- In dependency terms, order-service has a SHARES_DATA dependency on
+  notification-service: the two services share the orders-db datastore as common
+  data, so order-service depends on notification-service through that shared
+  orders-db. order-service shares its order data with notification-service via the
+  shared orders-db (SHARES_DATA).
 
 **Status:** Accepted.

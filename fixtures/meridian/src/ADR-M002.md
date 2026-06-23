@@ -26,7 +26,10 @@ notification-service scale independently of order-service.
 - This decision affects notification-service: notification-service consumes
   order-service's events and turns them into customer messages. ADR-M002 affects
   notification-service.
-- notification-service consumes events from order-service (CONSUMES_EVENT):
-  notification-service is an event consumer of order-service.
+- In dependency terms, notification-service depends on order-service:
+  notification-service subscribes to and consumes the order-lifecycle events that
+  order-service publishes. This is a CONSUMES_EVENT dependency from
+  notification-service to order-service — notification-service depends on
+  order-service for those events.
 
 **Status:** Accepted.

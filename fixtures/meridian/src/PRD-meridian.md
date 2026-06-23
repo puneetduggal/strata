@@ -32,9 +32,9 @@ mapping (which requirement SPECIFIES which feature) is given in the table.
 | --- | --- | --- | --- | --- |
 | REQ-M1 | Users authenticate with email and password. | functional | must-have | User Login |
 | REQ-M2 | Sessions use stateless JWT tokens. | functional | must-have | User Login |
-| REQ-M5 | Login sustains 15,000 requests/second at p99 < 150 ms. | nfr | must-have | User Login |
+| REQ-M5 | Login must support 15,000 sign-ins each second, keeping 99th-percentile latency beneath 150 ms. | nfr | must-have | User Login |
 | REQ-M3 | Checkout completes the order and payment atomically. | functional | must-have | Checkout |
-| REQ-M4 | Checkout sustains 10,000 requests/second at p99 < 250 ms. | nfr | must-have | Checkout |
+| REQ-M4 | Checkout must handle a sustained 10,000 orders/sec, with 99th-percentile response time under 250 ms. | nfr | must-have | Checkout |
 | REQ-M7 | Payment processing is idempotent. | functional | must-have | Checkout |
 | REQ-M6 | Order events are delivered at least once. | functional | should-have | Order Notifications |
 | REQ-M8 | The gateway enforces per-tenant rate limiting. | nfr | should-have | Edge Routing |
@@ -43,15 +43,15 @@ mapping (which requirement SPECIFIES which feature) is given in the table.
 
 REQ-M1 specifies User Login: users authenticate with email and password. REQ-M2
 specifies User Login: sessions use stateless JWT tokens. REQ-M5 specifies User
-Login as a non-functional requirement: login sustains 15,000 requests/second at
-p99 < 150 ms. The metric for REQ-M5 is login throughput and p99 latency, with a
+Login as a non-functional requirement: login must support 15,000 sign-ins each
+second, keeping 99th-percentile latency beneath 150 ms. The metric for REQ-M5 is login throughput and p99 latency, with a
 target value of 15,000 requests/second at p99 < 150 ms.
 
 ### 3.2 Checkout
 
 REQ-M3 specifies Checkout: checkout completes the order and payment atomically.
-REQ-M4 specifies Checkout as a non-functional requirement: checkout sustains
-10,000 requests/second at p99 < 250 ms. The metric for REQ-M4 is checkout
+REQ-M4 specifies Checkout as a non-functional requirement: checkout must handle
+a sustained 10,000 orders/sec, with 99th-percentile response time under 250 ms. The metric for REQ-M4 is checkout
 throughput and p99 latency, with a target value of 10,000 requests/second at
 p99 < 250 ms. REQ-M7 specifies Checkout: payment processing is idempotent.
 

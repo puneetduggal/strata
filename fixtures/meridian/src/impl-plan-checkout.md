@@ -13,13 +13,13 @@ requirement.
 | Requirement | Text | Implemented by |
 | --- | --- | --- |
 | REQ-M3 | Checkout completes the order and payment atomically. | order-service |
-| REQ-M4 | Checkout sustains 10,000 requests/second at p99 < 250 ms. | order-service |
+| REQ-M4 | Checkout must handle a sustained 10,000 orders/sec, with 99th-percentile response time under 250 ms. | order-service |
 | REQ-M7 | Payment processing is idempotent. | payment-service |
 
 - order-service implements REQ-M3: checkout completes the order and payment
   atomically.
-- order-service implements REQ-M4: checkout sustains 10,000 requests/second at
-  p99 < 250 ms.
+- order-service implements REQ-M4: checkout must handle a sustained 10,000
+  orders/sec, with 99th-percentile response time under 250 ms.
 - payment-service implements REQ-M7: payment processing is idempotent.
 
 ## 3. Test Plan

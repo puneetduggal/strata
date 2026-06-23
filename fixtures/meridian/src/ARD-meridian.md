@@ -49,12 +49,12 @@ future datastore sharing would require its own architecture decision.
 
 ## 4. Key Decisions Reviewed
 
-The board reviewed and endorsed the platform's standing decisions: stateless JWT
-sessions issued by identity-service; idempotent payment processing in
-payment-service; an event-driven approach to order lifecycle handling owned by
-order-service; and consolidation of order data on a shared orders datastore. Each
-of these is recorded in its own decision record; this review only confirms they
-are mutually consistent.
+The board reviewed and endorsed the platform's four standing decision records,
+each owned by its own ADR: ADR-M001 (JWT sessions for identity-service), ADR-M002
+(event-driven order lifecycle for order-service), ADR-M003 (payment idempotency
+for payment-service), and ADR-M004 (a shared orders datastore for order-service).
+This review only confirms that ADR-M001, ADR-M002, ADR-M003, and ADR-M004 are
+mutually consistent; the decisions themselves are recorded in those ADRs.
 
 ## 5. Findings and Risks
 

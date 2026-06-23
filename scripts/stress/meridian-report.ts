@@ -26,6 +26,7 @@ export type MatrixInputs = {
   resolutionByKey: Record<string, number>;
   identityProvenanceDocs: number;
   marketingEntityCount: number;
+  expectedInDomain: number; // # of software_dev docs the oracle expects (row 19 completeness guard)
 };
 
 export type MatrixRow = { n: number; name: string; pass: boolean; detail: string };
@@ -123,8 +124,11 @@ export function buildMatrix(inp: MatrixInputs): MatrixRow[] {
     {
       n: 19,
       name: "All in-domain docs ready",
-      pass: inDomainStatuses.length > 0 && inDomainStatuses.every(([, s]) => s === "ready"),
-      detail: `ready ${inDomainReady.length}/${inDomainStatuses.length} in-domain docs`,
+      pass:
+        inp.expectedInDomain > 0 &&
+        inDomainStatuses.length === inp.expectedInDomain &&
+        inDomainStatuses.every(([, s]) => s === "ready"),
+      detail: `ready ${inDomainReady.length}/${inp.expectedInDomain} in-domain docs (present ${inDomainStatuses.length})`,
     },
     {
       n: 20,

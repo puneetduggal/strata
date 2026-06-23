@@ -20,7 +20,7 @@ function passingInputs(): MatrixInputs {
     distinctKinds: ["CALLS","CONFIG","USES_LIBRARY","SHARES_DATA","CONSUMES_EVENT","READS_FROM"],
     q3Count: 4, q6Pass: { m4Passed: false, m5Passed: true }, q8PaymentOwners: [],
     sharedDatastore: true, resolutionByKey: { "Service:identity-service": 1, "Service:payment-service": 1, "Service:payments-gateway-service": 1 },
-    identityProvenanceDocs: 3, marketingEntityCount: 0,
+    identityProvenanceDocs: 3, marketingEntityCount: 0, expectedInDomain: 1,
   };
 }
 
@@ -39,6 +39,10 @@ describe("buildMatrix / renderReport", () => {
   test("missing DEPENDS_ON kind fails #5", () => {
     const inp = passingInputs(); inp.distinctKinds = ["CALLS"];
     expect(buildMatrix(inp).find((r) => r.n === 5)!.pass).toBe(false);
+  });
+  test("a missing in-domain doc fails #19 (no vacuous pass)", () => {
+    const inp = passingInputs(); inp.expectedInDomain = 2; // oracle expects 2 in-domain docs, only 1 present
+    expect(buildMatrix(inp).find((r) => r.n === 19)!.pass).toBe(false);
   });
   test("renderReport emits a markdown matrix with PASS/FAIL", () => {
     const md = renderReport(passingInputs().scorecard, buildMatrix(passingInputs()), passingInputs().integrity);

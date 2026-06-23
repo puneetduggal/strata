@@ -2,14 +2,14 @@ import "dotenv/config";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { db, rawSql } from "@/lib/db/client";
+import { rawSql } from "@/lib/db/client";
 import { relinkAll } from "@/lib/pipeline/run";
 import { runCQ } from "@/lib/query/templates";
 import { checkEdgeIntegrity, type EdgeEndpoints } from "@/lib/graph/integrity";
 import { locateSpan } from "@/lib/provenance/locate";
 import { formatScorecard } from "../../test/eval/scorecard";
 import {
-  truncateAll, ingestBundle, scoreAll, idByLabel, liveEntities,
+  truncateAll, ingestBundle, scoreAll, idByLabel,
   type Labels, type LinkCase, type EvalConfig,
 } from "../../test/eval/scorers";
 import { buildMatrix, renderReport, type IntegrityResult, type MatrixInputs } from "./meridian-report";
@@ -93,8 +93,10 @@ async function main(): Promise<void> {
   const marketingDoc = (await rawSql`SELECT id FROM documents WHERE filename = 'marketing-brief.pdf'`) as Array<{ id: number }>;
   const marketingProv = (await rawSql`SELECT COUNT(*)::int AS n FROM attribute_provenance WHERE document_id = ${marketingDoc[0]?.id ?? -1}`) as Array<{ n: number }>;
 
+  const expectedInDomain = Object.values(labels.classification).filter((c) => c.domain === "software_dev").length;
+
   const inputs: MatrixInputs = {
-    scorecard, integrity, statuses,
+    scorecard, integrity, statuses, expectedInDomain,
     distinctKinds: kindsRows.map((k) => k.kind),
     q3Count: q3.rows.length,
     q6Pass: { m4Passed: q6m4 === null ? null : Boolean(q6m4), m5Passed: q6m5 === null ? null : Boolean(q6m5) },

@@ -14,3 +14,6 @@ coverage/
 *.tsbuildinfo
 .superpowers/
 drizzle/meta/_journal.json.lock
+
+# design source-of-truth bundle (not committed)
+Strata Flow.html

@@ -39,6 +39,10 @@ export type GraphNode = {
   id: number;
   label: string;
   flags?: NodeFlags;
+  // Remaining typed-table columns (camelCased; id/package_id/label dropped), e.g. a Service's
+  // { language, owner, description }. Drives the inspector's field pairs. Additive — the
+  // traversal + Q1/Q2 flag overlay are unchanged.
+  fields?: Record<string, string>;
 };
 
 export type GraphEdge = {
@@ -76,7 +80,25 @@ function toGraphEdge(r: Record<string, any>): GraphEdge {
   };
 }
 
-const idList = (rows: Array<{ id: number }>) => rows.map((r) => r.id);
+const idList = (rows: Array<Record<string, any>>): number[] => rows.map((r) => r.id as number);
+
+// snake_case → camelCase (matches the extractor/provenance field names).
+const camel = (s: string) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+
+// Project a raw typed-entity row (snake_case from postgres-js) into the node `fields` record:
+// every non-null column except the bookkeeping/identity ones (id/package_id/label), camelCased
+// and stringified. `label` is already the node's title, so it's dropped here.
+const FIELD_SKIP = new Set(["id", "package_id", "label"]);
+function toFields(r: Record<string, any>): Record<string, string> {
+  const fields: Record<string, string> = {};
+  for (const col of Object.keys(r)) {
+    if (FIELD_SKIP.has(col)) continue;
+    const val = r[col];
+    if (val === null || val === undefined) continue;
+    fields[camel(col)] = String(val);
+  }
+  return fields;
+}
 
 /**
  * Build the traceability subgraph for one system.
@@ -84,90 +106,90 @@ const idList = (rows: Array<{ id: number }>) => rows.map((r) => r.id);
  */
 export async function getSystemGraph(systemId: number): Promise<SystemGraph> {
   const [system] = (await rawSql`
-    SELECT id, label FROM systems WHERE id = ${systemId}::int
-  `) as Array<{ id: number; label: string }>;
+    SELECT * FROM systems WHERE id = ${systemId}::int
+  `) as Array<Record<string, any>>;
   if (!system) return { system: null, nodes: [], edges: [] };
 
   // --- Walk the structural layers (each filtered to active edges) ---
   const features = (await rawSql`
-    SELECT f.id, f.label FROM features f
+    SELECT f.* FROM features f
     JOIN edges e ON e.active AND e.relation_type = 'PART_OF'
       AND e.source_type = 'Feature' AND e.source_id = f.id
       AND e.target_type = 'System' AND e.target_id = ${systemId}::int
     ORDER BY f.id
-  `) as Array<{ id: number; label: string }>;
+  `) as Array<Record<string, any>>;
   const featureIds = idList(features);
 
   const reqs = featureIds.length
     ? ((await rawSql`
-        SELECT DISTINCT r.id, r.label FROM requirements r
+        SELECT DISTINCT r.* FROM requirements r
         JOIN edges e ON e.active AND e.relation_type = 'SPECIFIES'
           AND e.source_type = 'Requirement' AND e.source_id = r.id
           AND e.target_type = 'Feature' AND e.target_id = ANY(${featureIds}::int[])
         ORDER BY r.id
-      `) as Array<{ id: number; label: string }>)
+      `) as Array<Record<string, any>>)
     : [];
   const reqIds = idList(reqs);
 
   const svcs = reqIds.length
     ? ((await rawSql`
-        SELECT DISTINCT s.id, s.label FROM services s
+        SELECT DISTINCT s.* FROM services s
         JOIN edges e ON e.active AND e.relation_type = 'IMPLEMENTS'
           AND e.source_type = 'Service' AND e.source_id = s.id
           AND e.target_type = 'Requirement' AND e.target_id = ANY(${reqIds}::int[])
         ORDER BY s.id
-      `) as Array<{ id: number; label: string }>)
+      `) as Array<Record<string, any>>)
     : [];
   const svcIds = idList(svcs);
 
   const datastores = svcIds.length
     ? ((await rawSql`
-        SELECT DISTINCT ds.id, ds.label FROM datastores ds
+        SELECT DISTINCT ds.* FROM datastores ds
         JOIN edges e ON e.active AND e.relation_type = 'USES'
           AND e.source_type = 'Service' AND e.source_id = ANY(${svcIds}::int[])
           AND e.target_type = 'Datastore' AND e.target_id = ds.id
         ORDER BY ds.id
-      `) as Array<{ id: number; label: string }>)
+      `) as Array<Record<string, any>>)
     : [];
 
   const testNodes = reqIds.length
     ? ((await rawSql`
-        SELECT DISTINCT t.id, t.label FROM tests t
+        SELECT DISTINCT t.* FROM tests t
         JOIN edges e ON e.active AND e.relation_type = 'VERIFIES'
           AND e.source_type = 'Test' AND e.source_id = t.id
           AND e.target_type = 'Requirement' AND e.target_id = ANY(${reqIds}::int[])
         ORDER BY t.id
-      `) as Array<{ id: number; label: string }>)
+      `) as Array<Record<string, any>>)
     : [];
 
   const loadTests = reqIds.length
     ? ((await rawSql`
-        SELECT DISTINCT l.id, l.label FROM load_test_results l
+        SELECT DISTINCT l.* FROM load_test_results l
         JOIN edges e ON e.active AND e.relation_type = 'VALIDATES'
           AND e.source_type = 'LoadTestResult' AND e.source_id = l.id
           AND e.target_type = 'Requirement' AND e.target_id = ANY(${reqIds}::int[])
         ORDER BY l.id
-      `) as Array<{ id: number; label: string }>)
+      `) as Array<Record<string, any>>)
     : [];
 
   const owners = svcIds.length
     ? ((await rawSql`
-        SELECT DISTINCT p.id, p.label FROM persons p
+        SELECT DISTINCT p.* FROM persons p
         JOIN edges e ON e.active AND e.relation_type = 'OWNS'
           AND e.source_type = 'Person' AND e.source_id = p.id
           AND e.target_type = 'Service' AND e.target_id = ANY(${svcIds}::int[])
         ORDER BY p.id
-      `) as Array<{ id: number; label: string }>)
+      `) as Array<Record<string, any>>)
     : [];
 
   const decisions = svcIds.length
     ? ((await rawSql`
-        SELECT DISTINCT d.id, d.label FROM decisions d
+        SELECT DISTINCT d.* FROM decisions d
         JOIN edges e ON e.active AND e.relation_type = 'AFFECTS'
           AND e.source_type = 'Decision' AND e.source_id = d.id
           AND e.target_type = 'Service' AND e.target_id = ANY(${svcIds}::int[])
         ORDER BY d.id
-      `) as Array<{ id: number; label: string }>)
+      `) as Array<Record<string, any>>)
     : [];
 
   // --- Collect the edges that connect nodes within the subgraph (active only) ---
@@ -207,13 +229,19 @@ export async function getSystemGraph(systemId: number): Promise<SystemGraph> {
   }
 
   // --- Assemble the node list, applying flags where they belong ---
+  const fieldsOf = (r: Record<string, any>) => {
+    const f = toFields(r);
+    return Object.keys(f).length ? { fields: f } : {};
+  };
+
   const nodes: GraphNode[] = [
-    { type: "System", id: system.id, label: system.label },
-    ...features.map((f) => ({ type: "Feature" as const, id: f.id, label: f.label })),
+    { type: "System", id: system.id, label: system.label, ...fieldsOf(system) },
+    ...features.map((f) => ({ type: "Feature" as const, id: f.id, label: f.label, ...fieldsOf(f) })),
     ...reqs.map((r) => ({
       type: "Requirement" as const,
       id: r.id,
       label: r.label,
+      ...fieldsOf(r),
       ...(noTestReqIds.has(r.id) ? { flags: { noTest: true } } : {}),
     })),
     ...svcs.map((s) => {
@@ -225,17 +253,18 @@ export async function getSystemGraph(systemId: number): Promise<SystemGraph> {
         type: "Service" as const,
         id: s.id,
         label: s.label,
+        ...fieldsOf(s),
         ...(Object.keys(flags).length ? { flags } : {}),
       };
     }),
-    ...datastores.map((d) => ({ type: "Datastore" as const, id: d.id, label: d.label })),
-    ...testNodes.map((t) => ({ type: "Test" as const, id: t.id, label: t.label })),
-    ...loadTests.map((l) => ({ type: "LoadTestResult" as const, id: l.id, label: l.label })),
-    ...owners.map((p) => ({ type: "Person" as const, id: p.id, label: p.label })),
-    ...decisions.map((d) => ({ type: "Decision" as const, id: d.id, label: d.label })),
+    ...datastores.map((d) => ({ type: "Datastore" as const, id: d.id, label: d.label, ...fieldsOf(d) })),
+    ...testNodes.map((t) => ({ type: "Test" as const, id: t.id, label: t.label, ...fieldsOf(t) })),
+    ...loadTests.map((l) => ({ type: "LoadTestResult" as const, id: l.id, label: l.label, ...fieldsOf(l) })),
+    ...owners.map((p) => ({ type: "Person" as const, id: p.id, label: p.label, ...fieldsOf(p) })),
+    ...decisions.map((d) => ({ type: "Decision" as const, id: d.id, label: d.label, ...fieldsOf(d) })),
   ];
 
-  return { system, nodes, edges: edgeRows.map(toGraphEdge) };
+  return { system: { id: system.id, label: system.label }, nodes, edges: edgeRows.map(toGraphEdge) };
 }
 
 // ---------------------------------------------------------------------------

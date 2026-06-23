@@ -9,7 +9,7 @@
     "test": "vitest run",
     "test:integration": "vitest run -c vitest.integration.config.ts",
     "stress:pdfs": "tsx scripts/stress/generate-pdfs.ts",
-    "stress:run": "tsx scripts/stress/meridian-harness.ts"
+    "stress:run": "LINK_THRESHOLD=0.50 tsx scripts/stress/meridian-harness.ts"
   },
   "type": "module",
   "dependencies": {

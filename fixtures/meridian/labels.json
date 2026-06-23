@@ -1,0 +1,161 @@
+{
+  "_about": "Ground-truth for the Meridian stress corpus (fixtures/meridian/pdf/*). The harness ingests these through the real pipeline and scores the graph + 10 CQ answers against this file. Field keys use lib/db/schema.ts column names. CQ golden answers are derived by reasoning each lib/query/templates.ts template against the graph below.",
+  "system": "Meridian",
+  "classification": {
+    "PRD-meridian.pdf":            { "docType": "PRD",              "domain": "software_dev" },
+    "ARD-meridian.pdf":            { "docType": "ARD",              "domain": "software_dev" },
+    "HLD-meridian.pdf":            { "docType": "HLD",              "domain": "software_dev" },
+    "LLD-identity.pdf":            { "docType": "LLD",              "domain": "software_dev" },
+    "LLD-order.pdf":               { "docType": "LLD",              "domain": "software_dev" },
+    "LLD-payment.pdf":             { "docType": "LLD",              "domain": "software_dev" },
+    "LLD-gateway.pdf":             { "docType": "LLD",              "domain": "software_dev" },
+    "ADR-M001.pdf":                { "docType": "ADR",              "domain": "software_dev" },
+    "ADR-M002.pdf":                { "docType": "ADR",              "domain": "software_dev" },
+    "ADR-M003.pdf":                { "docType": "ADR",              "domain": "software_dev" },
+    "ADR-M004.pdf":                { "docType": "ADR",              "domain": "software_dev" },
+    "impl-plan-checkout.pdf":      { "docType": "impl_plan",        "domain": "software_dev" },
+    "impl-plan-identity.pdf":      { "docType": "impl_plan",        "domain": "software_dev" },
+    "impl-plan-notifications.pdf": { "docType": "impl_plan",        "domain": "software_dev" },
+    "impl-plan-gateway.pdf":       { "docType": "impl_plan",        "domain": "software_dev" },
+    "loadtest-identity-login.pdf": { "docType": "load_test_report", "domain": "software_dev" },
+    "loadtest-order-checkout.pdf": { "docType": "load_test_report", "domain": "software_dev" },
+    "marketing-brief.pdf":         { "docType": "marketing",        "domain": "marketing" }
+  },
+  "entities": {
+    "System": [
+      { "label": "Meridian", "description": "The company's e-commerce/marketplace platform.", "sourceDocs": ["PRD-meridian.pdf", "ARD-meridian.pdf", "HLD-meridian.pdf"] }
+    ],
+    "Feature": [
+      { "label": "User Login",          "description": "How a customer authenticates before transacting.", "sourceDocs": ["PRD-meridian.pdf"] },
+      { "label": "Checkout",            "description": "Placing and paying for an order.",                 "sourceDocs": ["PRD-meridian.pdf"] },
+      { "label": "Order Notifications", "description": "Notifying customers about order lifecycle events.",  "sourceDocs": ["PRD-meridian.pdf"] },
+      { "label": "Edge Routing",        "description": "Routing and rate-limiting inbound API traffic.",     "sourceDocs": ["PRD-meridian.pdf"] }
+    ],
+    "Requirement": [
+      { "label": "REQ-M1", "text": "Users authenticate with email and password.",                          "kind": "functional", "priority": "must-have",   "metric": null, "targetValue": null, "sourceDocs": ["PRD-meridian.pdf", "impl-plan-identity.pdf"] },
+      { "label": "REQ-M2", "text": "Sessions use stateless JWT tokens.",                                    "kind": "functional", "priority": "must-have",   "metric": null, "targetValue": null, "sourceDocs": ["PRD-meridian.pdf", "impl-plan-identity.pdf"] },
+      { "label": "REQ-M3", "text": "Checkout completes the order and payment atomically.",                  "kind": "functional", "priority": "must-have",   "metric": null, "targetValue": null, "sourceDocs": ["PRD-meridian.pdf", "impl-plan-checkout.pdf"] },
+      { "label": "REQ-M4", "text": "Checkout sustains 10,000 requests/second at p99 < 250 ms.",            "kind": "nfr",        "priority": "must-have",   "metric": "checkout throughput and p99 latency", "targetValue": "10,000 requests/second at p99 < 250 ms", "sourceDocs": ["PRD-meridian.pdf", "impl-plan-checkout.pdf", "loadtest-order-checkout.pdf"] },
+      { "label": "REQ-M5", "text": "Login sustains 15,000 requests/second at p99 < 150 ms.",               "kind": "nfr",        "priority": "must-have",   "metric": "login throughput and p99 latency",    "targetValue": "15,000 requests/second at p99 < 150 ms", "sourceDocs": ["PRD-meridian.pdf", "impl-plan-identity.pdf", "loadtest-identity-login.pdf"] },
+      { "label": "REQ-M6", "text": "Order events are delivered at least once.",                             "kind": "functional", "priority": "should-have", "metric": null, "targetValue": null, "sourceDocs": ["PRD-meridian.pdf", "impl-plan-notifications.pdf"] },
+      { "label": "REQ-M7", "text": "Payment processing is idempotent.",                                     "kind": "functional", "priority": "must-have",   "metric": null, "targetValue": null, "sourceDocs": ["PRD-meridian.pdf", "impl-plan-checkout.pdf"] },
+      { "label": "REQ-M8", "text": "The gateway enforces per-tenant rate limiting.",                        "kind": "nfr",        "priority": "should-have", "metric": null, "targetValue": null, "sourceDocs": ["PRD-meridian.pdf", "impl-plan-gateway.pdf"] }
+    ],
+    "Service": [
+      { "label": "api-gateway",          "language": "Go",   "owner": "Lena Ortiz",   "description": "Edge service that routes and rate-limits inbound API traffic.", "sourceDocs": ["ARD-meridian.pdf", "HLD-meridian.pdf", "LLD-gateway.pdf", "impl-plan-gateway.pdf"] },
+      { "label": "identity-service",     "language": "Go",   "owner": "Priya Nair",   "description": "Authenticates users and mints JWT sessions.",                  "sourceDocs": ["ARD-meridian.pdf", "HLD-meridian.pdf", "LLD-identity.pdf", "impl-plan-identity.pdf", "ADR-M001.pdf"] },
+      { "label": "order-service",        "language": "Java", "owner": "Marcus Webb",  "description": "Owns the order lifecycle and orchestrates checkout.",          "sourceDocs": ["ARD-meridian.pdf", "HLD-meridian.pdf", "LLD-order.pdf", "impl-plan-checkout.pdf", "ADR-M002.pdf", "ADR-M004.pdf"] },
+      { "label": "payment-service",      "language": "Go",   "owner": null,           "description": "Charges and refunds payments idempotently.",                  "sourceDocs": ["ARD-meridian.pdf", "HLD-meridian.pdf", "LLD-payment.pdf", "impl-plan-checkout.pdf", "ADR-M003.pdf"] },
+      { "label": "notification-service", "language": "Node", "owner": "Marcus Webb",  "description": "Sends order lifecycle notifications.",                         "sourceDocs": ["ADR-M002.pdf", "ADR-M004.pdf", "impl-plan-notifications.pdf"] },
+      { "label": "platform-config",      "language": "Go",   "owner": "Lena Ortiz",   "description": "Service discovery and runtime configuration.",                 "sourceDocs": ["HLD-meridian.pdf"] },
+      { "label": "payments-gateway-service", "language": null, "owner": null,         "description": "Third-party payment-network edge proxy (distinct from payment-service).", "sourceDocs": ["ARD-meridian.pdf", "HLD-meridian.pdf"] }
+    ],
+    "Datastore": [
+      { "label": "users-db",           "engine": "PostgreSQL", "purpose": "System of record for user accounts and credentials.", "sourceDocs": ["HLD-meridian.pdf", "LLD-identity.pdf"] },
+      { "label": "orders-db",          "engine": "PostgreSQL", "purpose": "System of record for orders; shared by order and notification.", "sourceDocs": ["HLD-meridian.pdf", "LLD-order.pdf", "ADR-M004.pdf", "impl-plan-notifications.pdf"] },
+      { "label": "payments-ledger-db", "engine": "PostgreSQL", "purpose": "Append-only ledger of payment transactions.", "sourceDocs": ["HLD-meridian.pdf", "LLD-payment.pdf"] }
+    ],
+    "Test": [
+      { "label": "T-login",               "kind": "integration", "description": "Verifies email/password login.",      "sourceDocs": ["impl-plan-identity.pdf"] },
+      { "label": "T-checkout",            "kind": "integration", "description": "Verifies atomic checkout.",            "sourceDocs": ["impl-plan-checkout.pdf"] },
+      { "label": "T-payment-idempotency", "kind": "integration", "description": "Verifies idempotent payment retries.", "sourceDocs": ["impl-plan-checkout.pdf"] },
+      { "label": "T-gateway-ratelimit",   "kind": "integration", "description": "Verifies per-tenant rate limiting.",   "sourceDocs": ["impl-plan-gateway.pdf"] }
+    ],
+    "LoadTestResult": [
+      { "label": "identity-login", "scenario": "Login throughput", "metric": "requests/second and p99 latency", "observedValue": "16,000 requests/second at p99 120 ms", "targetValue": "15,000 requests/second at p99 < 150 ms", "passed": true,  "sourceDocs": ["loadtest-identity-login.pdf"] },
+      { "label": "order-checkout", "scenario": "Checkout throughput", "metric": "requests/second and p99 latency", "observedValue": "6,000 requests/second at p99 400 ms", "targetValue": "10,000 requests/second at p99 < 250 ms", "passed": false, "sourceDocs": ["loadtest-order-checkout.pdf"] }
+    ],
+    "Decision": [
+      { "label": "ADR-M001", "status": "Accepted", "rationale": "Adopt JWT for stateless sessions.",        "sourceDocs": ["ADR-M001.pdf"] },
+      { "label": "ADR-M002", "status": "Accepted", "rationale": "Event-driven order notifications.",         "sourceDocs": ["ADR-M002.pdf"] },
+      { "label": "ADR-M003", "status": "Accepted", "rationale": "Idempotency keys for payment processing.",  "sourceDocs": ["ADR-M003.pdf"] },
+      { "label": "ADR-M004", "status": "Accepted", "rationale": "Consolidate on a shared orders datastore.", "sourceDocs": ["ADR-M004.pdf"] }
+    ],
+    "Person": [
+      { "label": "Priya Nair",  "role": "Engineer",      "sourceDocs": ["HLD-meridian.pdf", "LLD-identity.pdf"] },
+      { "label": "Marcus Webb", "role": "Engineer",      "sourceDocs": ["HLD-meridian.pdf", "LLD-order.pdf", "impl-plan-notifications.pdf"] },
+      { "label": "Lena Ortiz",  "role": "Engineer",      "sourceDocs": ["HLD-meridian.pdf", "LLD-gateway.pdf"] }
+    ]
+  },
+  "links": [
+    { "relationType": "PART_OF", "source": "User Login",          "target": "Meridian", "sourceType": "Feature", "targetType": "System", "groundedIn": "PRD-meridian.pdf" },
+    { "relationType": "PART_OF", "source": "Checkout",            "target": "Meridian", "sourceType": "Feature", "targetType": "System", "groundedIn": "PRD-meridian.pdf" },
+    { "relationType": "PART_OF", "source": "Order Notifications", "target": "Meridian", "sourceType": "Feature", "targetType": "System", "groundedIn": "PRD-meridian.pdf" },
+    { "relationType": "PART_OF", "source": "Edge Routing",        "target": "Meridian", "sourceType": "Feature", "targetType": "System", "groundedIn": "PRD-meridian.pdf" },
+
+    { "relationType": "SPECIFIES", "source": "REQ-M1", "target": "User Login",          "sourceType": "Requirement", "targetType": "Feature", "groundedIn": "PRD-meridian.pdf" },
+    { "relationType": "SPECIFIES", "source": "REQ-M2", "target": "User Login",          "sourceType": "Requirement", "targetType": "Feature", "groundedIn": "PRD-meridian.pdf" },
+    { "relationType": "SPECIFIES", "source": "REQ-M5", "target": "User Login",          "sourceType": "Requirement", "targetType": "Feature", "groundedIn": "PRD-meridian.pdf" },
+    { "relationType": "SPECIFIES", "source": "REQ-M3", "target": "Checkout",            "sourceType": "Requirement", "targetType": "Feature", "groundedIn": "PRD-meridian.pdf" },
+    { "relationType": "SPECIFIES", "source": "REQ-M4", "target": "Checkout",            "sourceType": "Requirement", "targetType": "Feature", "groundedIn": "PRD-meridian.pdf" },
+    { "relationType": "SPECIFIES", "source": "REQ-M7", "target": "Checkout",            "sourceType": "Requirement", "targetType": "Feature", "groundedIn": "PRD-meridian.pdf" },
+    { "relationType": "SPECIFIES", "source": "REQ-M6", "target": "Order Notifications", "sourceType": "Requirement", "targetType": "Feature", "groundedIn": "PRD-meridian.pdf" },
+    { "relationType": "SPECIFIES", "source": "REQ-M8", "target": "Edge Routing",        "sourceType": "Requirement", "targetType": "Feature", "groundedIn": "PRD-meridian.pdf" },
+
+    { "relationType": "IMPLEMENTS", "source": "identity-service", "target": "REQ-M1", "sourceType": "Service", "targetType": "Requirement", "groundedIn": "impl-plan-identity.pdf" },
+    { "relationType": "IMPLEMENTS", "source": "identity-service", "target": "REQ-M2", "sourceType": "Service", "targetType": "Requirement", "groundedIn": "impl-plan-identity.pdf" },
+    { "relationType": "IMPLEMENTS", "source": "identity-service", "target": "REQ-M5", "sourceType": "Service", "targetType": "Requirement", "groundedIn": "impl-plan-identity.pdf" },
+    { "relationType": "IMPLEMENTS", "source": "order-service",    "target": "REQ-M3", "sourceType": "Service", "targetType": "Requirement", "groundedIn": "impl-plan-checkout.pdf" },
+    { "relationType": "IMPLEMENTS", "source": "order-service",    "target": "REQ-M4", "sourceType": "Service", "targetType": "Requirement", "groundedIn": "impl-plan-checkout.pdf" },
+    { "relationType": "IMPLEMENTS", "source": "payment-service",  "target": "REQ-M7", "sourceType": "Service", "targetType": "Requirement", "groundedIn": "impl-plan-checkout.pdf" },
+    { "relationType": "IMPLEMENTS", "source": "notification-service", "target": "REQ-M6", "sourceType": "Service", "targetType": "Requirement", "groundedIn": "impl-plan-notifications.pdf" },
+    { "relationType": "IMPLEMENTS", "source": "api-gateway",      "target": "REQ-M8", "sourceType": "Service", "targetType": "Requirement", "groundedIn": "impl-plan-gateway.pdf" },
+
+    { "relationType": "USES", "source": "identity-service",     "target": "users-db",           "sourceType": "Service", "targetType": "Datastore", "groundedIn": "HLD-meridian.pdf" },
+    { "relationType": "USES", "source": "order-service",        "target": "orders-db",          "sourceType": "Service", "targetType": "Datastore", "groundedIn": "HLD-meridian.pdf" },
+    { "relationType": "USES", "source": "payment-service",      "target": "payments-ledger-db", "sourceType": "Service", "targetType": "Datastore", "groundedIn": "HLD-meridian.pdf" },
+    { "relationType": "USES", "source": "notification-service", "target": "orders-db",          "sourceType": "Service", "targetType": "Datastore", "groundedIn": "ADR-M004.pdf" },
+
+    { "relationType": "DEPENDS_ON", "source": "api-gateway",          "target": "identity-service", "kind": "CALLS",          "sourceType": "Service", "targetType": "Service", "groundedIn": "HLD-meridian.pdf" },
+    { "relationType": "DEPENDS_ON", "source": "api-gateway",          "target": "order-service",    "kind": "CALLS",          "sourceType": "Service", "targetType": "Service", "groundedIn": "HLD-meridian.pdf" },
+    { "relationType": "DEPENDS_ON", "source": "api-gateway",          "target": "platform-config",  "kind": "CONFIG",         "sourceType": "Service", "targetType": "Service", "groundedIn": "HLD-meridian.pdf" },
+    { "relationType": "DEPENDS_ON", "source": "order-service",        "target": "identity-service", "kind": "CALLS",          "sourceType": "Service", "targetType": "Service", "groundedIn": "LLD-order.pdf" },
+    { "relationType": "DEPENDS_ON", "source": "order-service",        "target": "payment-service",  "kind": "CALLS",          "sourceType": "Service", "targetType": "Service", "groundedIn": "LLD-order.pdf" },
+    { "relationType": "DEPENDS_ON", "source": "order-service",        "target": "platform-config",  "kind": "USES_LIBRARY",   "sourceType": "Service", "targetType": "Service", "groundedIn": "LLD-order.pdf" },
+    { "relationType": "DEPENDS_ON", "source": "order-service",        "target": "notification-service", "kind": "SHARES_DATA", "sourceType": "Service", "targetType": "Service", "groundedIn": "ADR-M004.pdf" },
+    { "relationType": "DEPENDS_ON", "source": "notification-service", "target": "order-service",    "kind": "CONSUMES_EVENT", "sourceType": "Service", "targetType": "Service", "groundedIn": "ADR-M002.pdf" },
+    { "relationType": "DEPENDS_ON", "source": "notification-service", "target": "payment-service",  "kind": "READS_FROM",     "sourceType": "Service", "targetType": "Service", "groundedIn": "impl-plan-notifications.pdf" },
+    { "relationType": "DEPENDS_ON", "source": "payment-service",      "target": "identity-service", "kind": "CALLS",          "sourceType": "Service", "targetType": "Service", "groundedIn": "LLD-payment.pdf" },
+
+    { "relationType": "VERIFIES", "source": "T-login",               "target": "REQ-M1", "sourceType": "Test", "targetType": "Requirement", "groundedIn": "impl-plan-identity.pdf" },
+    { "relationType": "VERIFIES", "source": "T-checkout",            "target": "REQ-M3", "sourceType": "Test", "targetType": "Requirement", "groundedIn": "impl-plan-checkout.pdf" },
+    { "relationType": "VERIFIES", "source": "T-payment-idempotency", "target": "REQ-M7", "sourceType": "Test", "targetType": "Requirement", "groundedIn": "impl-plan-checkout.pdf" },
+    { "relationType": "VERIFIES", "source": "T-gateway-ratelimit",   "target": "REQ-M8", "sourceType": "Test", "targetType": "Requirement", "groundedIn": "impl-plan-gateway.pdf" },
+
+    { "relationType": "VALIDATES", "source": "identity-login", "target": "REQ-M5", "sourceType": "LoadTestResult", "targetType": "Requirement", "groundedIn": "loadtest-identity-login.pdf" },
+    { "relationType": "VALIDATES", "source": "order-checkout", "target": "REQ-M4", "sourceType": "LoadTestResult", "targetType": "Requirement", "groundedIn": "loadtest-order-checkout.pdf" },
+
+    { "relationType": "AFFECTS", "source": "ADR-M001", "target": "identity-service",     "sourceType": "Decision", "targetType": "Service", "groundedIn": "ADR-M001.pdf" },
+    { "relationType": "AFFECTS", "source": "ADR-M002", "target": "order-service",        "sourceType": "Decision", "targetType": "Service", "groundedIn": "ADR-M002.pdf" },
+    { "relationType": "AFFECTS", "source": "ADR-M002", "target": "notification-service", "sourceType": "Decision", "targetType": "Service", "groundedIn": "ADR-M002.pdf" },
+    { "relationType": "AFFECTS", "source": "ADR-M003", "target": "payment-service",      "sourceType": "Decision", "targetType": "Service", "groundedIn": "ADR-M003.pdf" },
+    { "relationType": "AFFECTS", "source": "ADR-M004", "target": "order-service",        "sourceType": "Decision", "targetType": "Service", "groundedIn": "ADR-M004.pdf" },
+    { "relationType": "AFFECTS", "source": "ADR-M004", "target": "notification-service", "sourceType": "Decision", "targetType": "Service", "groundedIn": "ADR-M004.pdf" },
+
+    { "relationType": "OWNS", "source": "Priya Nair",  "target": "identity-service",     "sourceType": "Person", "targetType": "Service", "groundedIn": "HLD-meridian.pdf" },
+    { "relationType": "OWNS", "source": "Marcus Webb", "target": "order-service",        "sourceType": "Person", "targetType": "Service", "groundedIn": "HLD-meridian.pdf" },
+    { "relationType": "OWNS", "source": "Marcus Webb", "target": "notification-service", "sourceType": "Person", "targetType": "Service", "groundedIn": "impl-plan-notifications.pdf" },
+    { "relationType": "OWNS", "source": "Lena Ortiz",  "target": "api-gateway",          "sourceType": "Person", "targetType": "Service", "groundedIn": "HLD-meridian.pdf" },
+    { "relationType": "OWNS", "source": "Lena Ortiz",  "target": "platform-config",      "sourceType": "Person", "targetType": "Service", "groundedIn": "HLD-meridian.pdf" }
+  ],
+  "cqAnswers": {
+    "Q1": { "template": "requirements_without_test", "question": "Which requirements have no verifying test?", "params": {}, "answer": ["REQ-M2", "REQ-M4", "REQ-M5", "REQ-M6"], "derivation": "VERIFIES edges exist only for REQ-M1,M3,M7,M8. The remaining requirements have no incoming VERIFIES edge (M4/M5 are validated by load tests, which are VALIDATES not VERIFIES)." },
+    "Q2": { "template": "services_coverage_gaps", "question": "Which services have no design doc / no load test?", "params": {}, "answer": {
+      "api-gateway":             { "noDesignDoc": false, "noLoadTest": true },
+      "identity-service":        { "noDesignDoc": false, "noLoadTest": false },
+      "order-service":           { "noDesignDoc": false, "noLoadTest": false },
+      "payment-service":         { "noDesignDoc": false, "noLoadTest": true },
+      "notification-service":    { "noDesignDoc": true,  "noLoadTest": true },
+      "platform-config":         { "noDesignDoc": false, "noLoadTest": true },
+      "payments-gateway-service":{ "noDesignDoc": false, "noLoadTest": true }
+    }, "derivation": "noDesignDoc=true iff no MENTIONS edge from an HLD/LLD/ARD chunk: only notification-service appears in none of those doc types. noLoadTest=true iff no VALIDATES load test on a requirement the service IMPLEMENTS: identity (M5) and order (M4) are validated; all others are not." },
+    "Q3": { "template": "service_blast_radius", "question": "What depends on identity-service / what breaks if it changes?", "params": { "service": "identity-service" }, "answer": ["api-gateway", "order-service", "payment-service", "notification-service"], "derivation": "Incoming DEPENDS_ON transitive closure of identity-service: direct = api-gateway, order-service, payment-service; transitive via order-service = notification-service. Cycle order<->notification is visited-set guarded." },
+    "Q4": { "template": "feature_chain", "question": "Show the PRD->impl->load-test chain for Checkout.", "params": { "feature": "Checkout" }, "answer": { "requirements": ["REQ-M3", "REQ-M4", "REQ-M7"], "services": ["order-service", "payment-service"], "tests": ["T-checkout", "T-payment-idempotency"], "loadTestResults": ["order-checkout"] }, "derivation": "reqs SPECIFIES Checkout = M3,M4,M7; services IMPLEMENTS those = order,payment; tests VERIFIES those = T-checkout(M3),T-payment-idempotency(M7); loadtests VALIDATES those = order-checkout(M4)." },
+    "Q5": { "template": "service_datastore", "question": "What datastore does order-service use?", "params": { "service": "order-service" }, "answer": ["orders-db"], "derivation": "USES edge order-service -> orders-db." },
+    "Q6": { "template": "loadtest_vs_target", "question": "Did the load test meet the PRD target for REQ-M4?", "params": { "requirement": "REQ-M4" }, "answer": { "passed": false, "observedValue": "6,000 requests/second at p99 400 ms" }, "derivation": "order-checkout VALIDATES REQ-M4 with observed 6,000 rps / p99 400 ms vs target 10,000 rps / p99 < 250 ms -> passed=false." },
+    "Q7": { "template": "service_decisions", "question": "What decisions affected order-service, and why?", "params": { "service": "order-service" }, "answer": [{ "decision": "ADR-M002" }, { "decision": "ADR-M004" }], "derivation": "AFFECTS edges into order-service: ADR-M002 (event-driven notifications) and ADR-M004 (shared orders datastore)." },
+    "Q8": { "template": "service_owner", "question": "Who owns payment-service?", "params": { "service": "payment-service" }, "answer": [], "derivation": "payment-service has no OWNS edge -> no owner." },
+    "Q9": { "template": "feature_blast_radius", "question": "If User Login changes, what is the full blast radius?", "params": { "feature": "User Login" }, "answer": { "requirements": ["REQ-M1", "REQ-M2", "REQ-M5"], "services": ["api-gateway", "identity-service", "order-service", "payment-service", "notification-service"], "tests": ["T-login"], "loadTestResults": ["identity-login"] }, "derivation": "reqs SPECIFIES User Login = M1,M2,M5; impl services = identity; + transitive incoming DEPENDS_ON dependents of identity = api-gateway,order,payment,notification; tests VERIFIES reqs = T-login(M1); loadtests VALIDATES reqs = identity-login(M5)." },
+    "Q10": { "template": "dependency_path", "question": "How does api-gateway transitively depend on payment-service?", "params": { "source": "api-gateway", "target": "payment-service" }, "answer": { "forward": ["api-gateway", "order-service", "payment-service"] }, "derivation": "Shortest outgoing DEPENDS_ON path: api-gateway -> order-service -> payment-service (no direct edge)." }
+  }
+}

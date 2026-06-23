@@ -36,3 +36,41 @@ describe("meridian oracle shape", () => {
     }
   });
 });
+
+const SRC_DIR = path.join(ROOT, "fixtures/meridian/src");
+const srcFor = (pdfName: string) => fs.readFileSync(path.join(SRC_DIR, pdfName.replace(/\.pdf$/, ".md")), "utf8");
+
+describe("meridian corpus consistency (docs match oracle)", () => {
+  test("one .md src per classified .pdf", () => {
+    for (const pdf of Object.keys(LABELS.classification)) {
+      expect(fs.existsSync(path.join(SRC_DIR, pdf.replace(/\.pdf$/, ".md"))), pdf).toBe(true);
+    }
+  });
+  test("every entity label appears verbatim in each of its sourceDocs", () => {
+    for (const [type, list] of Object.entries(LABELS.entities) as [string, any[]][]) {
+      for (const e of list) {
+        for (const doc of e.sourceDocs) {
+          expect(srcFor(doc).includes(e.label), `${type}:${e.label} in ${doc}`).toBe(true);
+        }
+      }
+    }
+  });
+  test("every link's source+target labels appear verbatim in its groundedIn doc", () => {
+    for (const l of LABELS.links as any[]) {
+      const txt = srcFor(l.groundedIn);
+      expect(txt.includes(l.source), `${l.relationType} source ${l.source} in ${l.groundedIn}`).toBe(true);
+      expect(txt.includes(l.target), `${l.relationType} target ${l.target} in ${l.groundedIn}`).toBe(true);
+    }
+  });
+  test("notification-service appears in NO HLD/LLD/ARD doc (noDesignDoc invariant)", () => {
+    for (const pdf of ["HLD-meridian.pdf","LLD-identity.pdf","LLD-order.pdf","LLD-payment.pdf","LLD-gateway.pdf","ARD-meridian.pdf"]) {
+      expect(srcFor(pdf).includes("notification-service"), `notification-service must NOT be in ${pdf}`).toBe(false);
+    }
+  });
+  test("marketing-brief mentions no service label (stays off-domain)", () => {
+    const txt = srcFor("marketing-brief.pdf");
+    for (const s of (LABELS.entities.Service as any[])) {
+      expect(txt.includes(s.label), `marketing brief must not name ${s.label}`).toBe(false);
+    }
+  });
+});

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import { IconRail } from "@/components/shell/icon-rail";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +15,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: noFlash }} /></head>
-      <body className="bg-canvas text-text font-sans antialiased">{children}</body>
+      <body className="bg-canvas text-text font-sans antialiased">
+        <div className="flex h-screen overflow-hidden">
+          <IconRail />
+          <main className="flex flex-1 flex-col min-w-0">{children}</main>
+        </div>
+      </body>
     </html>
   );
 }

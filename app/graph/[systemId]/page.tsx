@@ -1,9 +1,13 @@
 import Link from "next/link";
 import GraphView from "@/components/graph-view";
+import { TopBar } from "@/components/shell/top-bar";
 import { getSystemGraph } from "@/lib/query/graph";
 
-// Server component: resolve the system subgraph (with Q1/Q2 coverage overlays) and render it.
-// Handles a missing/non-numeric/unknown systemId gracefully rather than 500-ing.
+// Server component: resolve the system subgraph (with Q1/Q2 coverage overlays) and render the
+// radial traceability canvas (catalog 03-graph). The page owns the frame chrome — breadcrumb top
+// bar + a "System: <name> ▾" scope chip — and the two-pane body (flex-1 canvas + 336px inspector,
+// both rendered by the client <GraphView/> which holds node-selection state). Invalid/unknown ids
+// are handled gracefully rather than 500-ing.
 export default async function GraphPage({
   params,
 }: {
@@ -22,25 +26,40 @@ export default async function GraphPage({
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-12">
-      <Link href="/" className="text-sm text-blue-600 hover:underline">
-        ← Back
-      </Link>
-      <div className="mt-4">
+    <>
+      <TopBar
+        leaf="Graph"
+        right={
+          <div className="flex items-center gap-[8px]">
+            <span className="text-[12px] text-text-3">Scope</span>
+            <span className="rounded-[8px] border border-accent-line bg-accent-soft px-[11px] py-[5px] font-mono text-[11.5px] font-medium text-accent">
+              System: {graph.system.label} ▾
+            </span>
+          </div>
+        }
+      />
+
+      <div className="flex min-h-0 flex-1">
         <GraphView graph={graph} />
       </div>
-    </main>
+    </>
   );
 }
 
 function NotFound({ message }: { message: string }) {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <Link href="/" className="text-sm text-blue-600 hover:underline">
-        ← Back
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold text-gray-900">System not found</h1>
-      <p className="mt-1 text-sm text-gray-500">{message}</p>
-    </main>
+    <>
+      <TopBar leaf="Not found" />
+      <div className="flex min-h-0 flex-1 flex-col items-start p-[28px_36px]">
+        <h1 className="text-[15px] font-semibold text-text">System not found</h1>
+        <p className="mt-[6px] text-[13px] text-text-2">{message}</p>
+        <Link
+          href="/"
+          className="mt-[18px] flex h-[38px] items-center gap-[7px] rounded-[9px] border border-border-2 bg-surface px-[14px] text-[12.5px] font-medium text-text"
+        >
+          <span className="font-mono text-[11px] text-accent">{"←"}</span> Back home
+        </Link>
+      </div>
+    </>
   );
 }

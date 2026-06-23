@@ -68,3 +68,95 @@ export function resolveSpan(
 
   return { start, end };
 }
+
+// Task 7 — the doc viewer renders MANY highlights at once (the active citation + every other
+// located citation in the doc). buildHighlights collapses a set of character spans into an
+// ordered, non-overlapping list of segments the JSX can map 1:1, so we never have to nest or
+// overlap inline <span>s. Kept pure (no JSX) so it's unit-testable.
+
+export type HighlightTier = "active" | "passive" | "none";
+
+export interface HighlightSpan {
+  charStart: number;
+  charEnd: number;
+  entityType?: string;
+}
+
+export interface HighlightSegment {
+  text: string;
+  tier: HighlightTier;
+  entityType?: string;
+}
+
+/**
+ * Split `rawText` into ordered, non-overlapping segments for rendering.
+ *
+ * - The span equal to `activeSpan` (matched by start/end) becomes tier "active" (no entityType —
+ *   it's the accent-glow citation the page opened at).
+ * - Every other in-range span becomes tier "passive", carrying its `entityType` (drives --e-*).
+ * - The text between spans becomes tier "none".
+ *
+ * Overlap handling is greedy left-to-right by input order: when two spans overlap, the one
+ * listed first claims the contested characters; a later span only contributes the portion not
+ * already covered. Out-of-range / inverted / empty spans are ignored. Reassembling the segment
+ * texts in order always reproduces `rawText` exactly.
+ */
+export function buildHighlights(
+  rawText: string,
+  spans: HighlightSpan[],
+  activeSpan: { start: number; end: number } | null,
+): HighlightSegment[] {
+  const len = rawText.length;
+
+  // Per-character ownership map. -1 = not covered; otherwise the index of the owning span
+  // (in the combined list below). First writer wins so earlier spans take precedence on overlap.
+  const owner = new Int32Array(len).fill(-1);
+
+  // The active span is span index 0 so it always wins ties; the located spans follow.
+  type Claim = { tier: HighlightTier; entityType?: string };
+  const claims: Claim[] = [];
+
+  const claim = (start: number, end: number, c: Claim) => {
+    if (
+      !Number.isInteger(start) ||
+      !Number.isInteger(end) ||
+      start < 0 ||
+      end > len ||
+      start >= end
+    ) {
+      return; // out-of-range / inverted / empty → ignore
+    }
+    const idx = claims.push(c) - 1;
+    for (let i = start; i < end; i++) {
+      if (owner[i] === -1) owner[i] = idx;
+    }
+  };
+
+  if (activeSpan) claim(activeSpan.start, activeSpan.end, { tier: "active" });
+  for (const s of spans) {
+    // A located span that exactly matches the active span is already painted as active — skip it
+    // so it doesn't double as a passive segment.
+    if (activeSpan && s.charStart === activeSpan.start && s.charEnd === activeSpan.end) continue;
+    claim(s.charStart, s.charEnd, { tier: "passive", entityType: s.entityType });
+  }
+
+  // Walk the ownership map, coalescing runs of identical ownership into segments.
+  const segments: HighlightSegment[] = [];
+  let i = 0;
+  while (i < len) {
+    const o = owner[i];
+    let j = i + 1;
+    while (j < len && owner[j] === o) j++;
+    const text = rawText.slice(i, j);
+    if (o === -1) {
+      segments.push({ text, tier: "none" });
+    } else {
+      const c = claims[o];
+      segments.push(c.entityType ? { text, tier: c.tier, entityType: c.entityType } : { text, tier: c.tier });
+    }
+    i = j;
+  }
+
+  if (segments.length === 0) return [{ text: rawText, tier: "none" }];
+  return segments;
+}

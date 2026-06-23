@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TopBar } from "@/components/shell/top-bar";
 import AskBox, { type AskResult } from "@/components/ask-box";
+
+// Strip the file extension so a documentId resolves to a catalog-style short-name
+// (HLD.txt → HLD, HLD-auth.txt → HLD-auth) — matches the table/doc/graph short-name.
+function shortName(filename: string): string {
+  return filename.replace(/\.[^.]+$/, "");
+}
 
 // Task 18 (reskin: catalog 04) — the Ask surface. A two-column body: the conversation column
 // (input, grouped CQ chips, tiered answer card) and a 300px right panel (the 3-tier router ladder
@@ -15,6 +21,22 @@ export default function AskPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AskResult | null>(null);
   const [activeCQ, setActiveCQ] = useState<string | null>(null);
+
+  // Doc id → short-name for citation link labels (existing /api/status route; fetched once on
+  // mount; graceful fallback to `doc #{id}` when the map lacks the id or the fetch fails).
+  const [docNames, setDocNames] = useState<Map<number, string>>(new Map());
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/status")
+      .then((r) => (r.ok ? r.json() : { docs: [] }))
+      .then((b: { docs: { id: number; filename: string }[] }) => {
+        if (!cancelled) setDocNames(new Map(b.docs.map((d) => [d.id, shortName(d.filename)])));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function ask(q: string) {
     const trimmed = q.trim();
@@ -67,6 +89,7 @@ export default function AskPage() {
           }}
           onSubmit={() => void ask(question)}
           onSelectCQ={selectCQ}
+          docNames={docNames}
         />
         {result && <RightPanel result={result} />}
       </div>

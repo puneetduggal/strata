@@ -43,6 +43,11 @@ function isEdgeRef(p: EdgeRef | ChunkRef): p is EdgeRef {
   return "relationType" in p;
 }
 
+// Citation link label: the doc's filename short-name when known, else `doc #{id}` (catalog §3c).
+function docName(docNames: Map<number, string>, documentId: number): string {
+  return docNames.get(documentId) ?? `doc #${documentId}`;
+}
+
 // ---------------------------------------------------------------------------
 // Grouped competency-question chips (catalog §3b).
 //
@@ -81,6 +86,7 @@ export default function AskBox({
   onQuestionChange,
   onSubmit,
   onSelectCQ,
+  docNames,
 }: {
   question: string;
   loading: boolean;
@@ -90,6 +96,7 @@ export default function AskBox({
   onQuestionChange: (q: string) => void;
   onSubmit: () => void;
   onSelectCQ: (id: string, question: string) => void;
+  docNames: Map<number, string>;
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-[24px_30px]">
@@ -165,7 +172,7 @@ export default function AskBox({
         </p>
       )}
 
-      {result && <AnswerCard result={result} question={question} />}
+      {result && <AnswerCard result={result} question={question} docNames={docNames} />}
     </div>
   );
 }
@@ -173,7 +180,15 @@ export default function AskBox({
 // ---------------------------------------------------------------------------
 // §3c answer card
 // ---------------------------------------------------------------------------
-function AnswerCard({ result, question }: { result: AskResult; question: string }) {
+function AnswerCard({
+  result,
+  question,
+  docNames,
+}: {
+  result: AskResult;
+  question: string;
+  docNames: Map<number, string>;
+}) {
   const isTemplate = result.tier === "template";
   const edges = isTemplate ? (result.provenance.filter(isEdgeRef) as EdgeRef[]) : [];
   const chunks = !isTemplate ? (result.provenance.filter((p) => !isEdgeRef(p)) as ChunkRef[]) : [];
@@ -235,8 +250,8 @@ function AnswerCard({ result, question }: { result: AskResult; question: string 
             </div>
             <div className="flex flex-col gap-[7px]">
               {isTemplate
-                ? edges.map((e) => <EdgeCard key={e.id} edge={e} />)
-                : chunks.map((c) => <ChunkCard key={c.chunkId} chunk={c} />)}
+                ? edges.map((e) => <EdgeCard key={e.id} edge={e} docNames={docNames} />)
+                : chunks.map((c) => <ChunkCard key={c.chunkId} chunk={c} docNames={docNames} />)}
             </div>
           </>
         )}
@@ -289,7 +304,7 @@ function AnswerProse({ answer }: { answer: string }) {
   );
 }
 
-function EdgeCard({ edge }: { edge: EdgeRef }) {
+function EdgeCard({ edge, docNames }: { edge: EdgeRef; docNames: Map<number, string> }) {
   const tag = edge.kind ? `${edge.relationType} · ${edge.kind}` : edge.relationType;
   const body = (
     <>
@@ -302,7 +317,7 @@ function EdgeCard({ edge }: { edge: EdgeRef }) {
         </span>
         {edge.evidenceDocumentId != null && (
           <span className="ml-auto flex-none font-mono text-[10px] text-accent">
-            doc #{edge.evidenceDocumentId} →
+            {docName(docNames, edge.evidenceDocumentId)} →
           </span>
         )}
       </div>
@@ -321,17 +336,17 @@ function EdgeCard({ edge }: { edge: EdgeRef }) {
   );
 }
 
-function ChunkCard({ chunk }: { chunk: ChunkRef }) {
+function ChunkCard({ chunk, docNames }: { chunk: ChunkRef; docNames: Map<number, string> }) {
   return (
     <a
       href={docHref(chunk.documentId, chunk.charStart, chunk.charEnd)}
       className="block rounded-[9px] border border-border p-[9px_12px] hover:border-accent-line"
     >
       <div className="mb-[3px] flex items-center gap-[8px] text-[11.5px]">
-        <span className="text-text-2">
-          doc #{chunk.documentId} · p.{chunk.page}
+        <span className="text-text-2">p.{chunk.page}</span>
+        <span className="ml-auto flex-none font-mono text-[10px] text-accent">
+          {docName(docNames, chunk.documentId)} →
         </span>
-        <span className="ml-auto flex-none font-mono text-[10px] text-accent">doc #{chunk.documentId} →</span>
       </div>
       <p className="line-clamp-3 text-[11.5px] italic text-text-2">“{chunk.snippet}”</p>
     </a>

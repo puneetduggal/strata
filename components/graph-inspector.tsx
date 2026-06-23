@@ -241,11 +241,15 @@ function SelectedDetail({
   const token = TYPE_TOKEN[node.type];
   const selfKey = nodeKey(node.type, node.id);
 
-  // Field pairs — show up to four meaningful ones from node.fields (skip the long free-text body).
+  // Field pairs — show up to four human-meaningful attributes from node.fields. We DISPLAY-filter
+  // (the data layer keeps `fields` intact) to drop: the long free-text body (text/description), FK
+  // columns (keys ending in Id/_id, plus packageId), and pure-bookkeeping flags (passed,
+  // observedValue) so e.g. a Feature no longer surfaces `System Id` and a LoadTestResult no longer
+  // surfaces `Passed`/`Observed Value`. The spec'd Service case (Language, Owner) still renders.
   const pairs = useMemo(() => {
     const f = node.fields ?? {};
     return Object.entries(f)
-      .filter(([k]) => k !== "text" && k !== "description")
+      .filter(([k]) => !isSkippedField(k))
       .slice(0, 4)
       .map(([k, v]) => [titleCase(k), v] as const);
   }, [node]);
@@ -355,6 +359,14 @@ function displayRel(rel: string, outgoing: boolean): string {
     if (rel === "OWNS") return "OWNED_BY";
   }
   return rel;
+}
+
+// Inspector DISPLAY skip set: free-text bodies + FK/bookkeeping columns the field pairs shouldn't
+// surface. Keys are camelCased here (node.fields), so FKs read as `…Id`; we also match `_id`
+// defensively. The named bookkeeping flags (passed / observedValue) are LoadTestResult noise.
+const FIELD_SKIP_DISPLAY = new Set(["text", "description", "packageId", "passed", "observedValue"]);
+function isSkippedField(k: string): boolean {
+  return FIELD_SKIP_DISPLAY.has(k) || k.endsWith("Id") || k.endsWith("_id");
 }
 
 function titleCase(camel: string): string {

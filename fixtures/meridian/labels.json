@@ -112,8 +112,8 @@
     { "relationType": "DEPENDS_ON", "source": "order-service",        "target": "identity-service", "kind": "CALLS",          "sourceType": "Service", "targetType": "Service", "groundedIn": "LLD-order.pdf" },
     { "relationType": "DEPENDS_ON", "source": "order-service",        "target": "payment-service",  "kind": "CALLS",          "sourceType": "Service", "targetType": "Service", "groundedIn": "LLD-order.pdf" },
     { "relationType": "DEPENDS_ON", "source": "order-service",        "target": "platform-config",  "kind": "USES_LIBRARY",   "sourceType": "Service", "targetType": "Service", "groundedIn": "LLD-order.pdf" },
-    { "relationType": "DEPENDS_ON", "source": "order-service",        "target": "notification-service", "kind": "SHARES_DATA", "sourceType": "Service", "targetType": "Service", "groundedIn": "ADR-M004.pdf" },
-    { "relationType": "DEPENDS_ON", "source": "notification-service", "target": "order-service",    "kind": "CONSUMES_EVENT", "sourceType": "Service", "targetType": "Service", "groundedIn": "ADR-M002.pdf" },
+    { "relationType": "DEPENDS_ON", "source": "order-service",        "target": "notification-service", "kind": "SHARES_DATA", "sourceType": "Service", "targetType": "Service", "groundedIn": "impl-plan-notifications.pdf" },
+    { "relationType": "DEPENDS_ON", "source": "notification-service", "target": "order-service",    "kind": "CONSUMES_EVENT", "sourceType": "Service", "targetType": "Service", "groundedIn": "impl-plan-notifications.pdf" },
     { "relationType": "DEPENDS_ON", "source": "notification-service", "target": "payment-service",  "kind": "READS_FROM",     "sourceType": "Service", "targetType": "Service", "groundedIn": "impl-plan-notifications.pdf" },
     { "relationType": "DEPENDS_ON", "source": "payment-service",      "target": "identity-service", "kind": "CALLS",          "sourceType": "Service", "targetType": "Service", "groundedIn": "LLD-payment.pdf" },
 

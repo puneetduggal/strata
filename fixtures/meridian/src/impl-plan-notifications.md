@@ -24,6 +24,13 @@ engineer for notification delivery.
 
 ## 4. Data and Dependencies
 
+- notification-service depends on order-service and consumes its events
+  (CONSUMES_EVENT): notification-service subscribes to the order lifecycle events
+  that order-service publishes, so notification-service depends on order-service
+  for those events.
+- order-service shares the orders-db datastore with notification-service
+  (SHARES_DATA): order-service depends on notification-service through the shared
+  orders-db, which both services read.
 - notification-service reads order state directly from the shared orders-db.
 - notification-service reads payment status from payment-service (READS_FROM):
   notification-service reads from payment-service to know whether an order has

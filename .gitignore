@@ -14,6 +14,8 @@ coverage/
 *.tsbuildinfo
 .superpowers/
 drizzle/meta/_journal.json.lock
+fixtures/meridian/pdf/
+stress-report.md
 
 # design source-of-truth bundle (not committed)
 Strata Flow.html

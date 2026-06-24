@@ -57,6 +57,12 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Keep the Neon compute warm: the Voyage-throttled ingest has long idle gaps that can trip
+  // Neon's auto-suspend, dropping the connection mid-run. A lightweight ping every 60s prevents
+  // it. unref() so the timer never holds the process open at exit.
+  const keepAlive = setInterval(() => { rawSql`SELECT 1`.catch(() => {}); }, 60_000);
+  keepAlive.unref?.();
+
   const labels = JSON.parse(fs.readFileSync(cfg.labelsPath, "utf8")) as Labels;
   await truncateAll();
   const statusMap = await ingestBundle(cfg);          // file -> {id, status}
@@ -113,6 +119,7 @@ async function main(): Promise<void> {
   log(report);
   const failed = matrix.filter((r) => !r.pass);
   log(`[meridian] matrix: ${matrix.length - failed.length}/${matrix.length} passed. Report -> ${REPORT}`);
+  clearInterval(keepAlive);
   await rawSql.end();
   process.exit(failed.length === 0 ? 0 : 1);
 }

@@ -93,3 +93,30 @@ and the deployed app then serves the freshly-built Meridian graph.
 
 Treat this as a deliberate, one-off operation — confirm the target host (the harness echoes a
 password-masked `target DB:` line) before proceeding.
+
+Get the prod connection string from Neon (use the **direct**, non-pooled endpoint — the
+harness opens prepared-statement connections that the PgBouncer pooled endpoint can reject):
+
+```bash
+DATABASE_URL=$(neonctl connection-string production --project-id <id> --org-id <id> \
+  --database-name neondb --role-name neondb_owner)
+STRESS_CONFIRM=yes MERIDIAN=live DATABASE_URL="$DATABASE_URL" pnpm stress:run
+```
+
+---
+
+## Verify the live deployment (1:1)
+
+After promoting, confirm the **deployed Vercel app** serves the graph identically to the local
+result. `verify-live.ts` drives the real HTTP surface — `POST /api/query` for all 10 CQs,
+`GET /api/status`, and `POST /api/ask` probes — against the live URL and compares every
+deterministic answer to the oracle. Entity IDs restart on each rebuild, so it resolves them by
+label from the same Neon DB the app reads.
+
+```bash
+DATABASE_URL="$DATABASE_URL" STRATA_URL=https://strata-eight-green.vercel.app pnpm stress:verify-live
+```
+
+Exit `0` iff every gated row (status + 10 CQs) passes. The `ask` rows are informational — the
+ask path narrates the *same* deterministic rowset, so its correctness follows from the CQ rows;
+the probes just confirm the live router + narration respond sensibly.

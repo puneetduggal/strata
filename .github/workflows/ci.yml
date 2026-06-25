@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Least-privilege default for this workflow's GITHUB_TOKEN (read-only).
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      # First-party actions pinned to major tags; SHA-pin any third-party action you add later.
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9 # matches pnpm-lock.yaml (lockfileVersion 9.0)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
+      - name: Unit tests
+        run: pnpm test
+      - name: Build
+        run: pnpm build
+        env:
+          # Build never connects (postgres-js is lazy); a dummy URL keeps CI hermetic.
+          DATABASE_URL: postgres://ci:ci@localhost:5432/ci

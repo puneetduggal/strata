@@ -6,7 +6,7 @@ Strata turns a pile of messy technical documents (PRDs, design docs, ADRs, imple
 plans, load-test reports) into a **queryable knowledge graph** where every node, edge, and
 answer cites the exact source span it came from.
 
-> 📄 **Product doc / design spec:** [Strata — Auto-Structuring Document Knowledge Graph](https://app.notion.com/p/Strata-Auto-Structuring-Document-Knowledge-Graph-Design-Spec-38585936d1ef817d8a4ddb5a10ba5106)
+> 📄 **HLD/LLD Spec:** [Strata — Auto-Structuring Document Knowledge Graph](https://app.notion.com/p/Strata-Auto-Structuring-Document-Knowledge-Graph-Design-Spec-38585936d1ef817d8a4ddb5a10ba5106)
 
 Most "document → structured data" tools flatten each file into a row of fields. The real value
 in technical documents is the **relationships *between* them**: a PRD's requirement, the service

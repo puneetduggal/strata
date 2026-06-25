@@ -12,23 +12,49 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+
+    # The unit suite is offline w.r.t. LLM/embeddings (record/replay cassettes) but DOES need a
+    # Postgres + pgvector DB. Tests self-seed with per-run tokens, so a migrated empty schema is
+    # enough — no corpus seeding required.
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: strata
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/strata?sslmode=disable
+
     steps:
       # First-party actions pinned to major tags; SHA-pin any third-party action you add later.
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 11 # match local pnpm; the repo's pnpm-workspace.yaml uses pnpm 10+ keys (onlyBuiltDependencies/allowBuilds)
+          version: 11 # match local pnpm; the repo's pnpm-workspace.yaml uses pnpm 10+ keys
       - uses: actions/setup-node@v4
         with:
           node-version: 22 # pnpm 11 requires Node >= 22.13 (uses node:sqlite); project requires >= 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+
+      # Mirrors the documented local setup: extensions BEFORE migrate, HNSW/GIN indexes AFTER.
+      - name: Database schema
+        run: |
+          psql "$DATABASE_URL" -f drizzle/0000_extensions.sql
+          pnpm exec drizzle-kit migrate
+          psql "$DATABASE_URL" -f drizzle/0001_indexes.sql
+
       - name: Typecheck
         run: pnpm exec tsc --noEmit
       - name: Unit tests
         run: pnpm test
       - name: Build
         run: pnpm build
-        env:
-          # Build never connects (postgres-js is lazy); a dummy URL keeps CI hermetic.
-          DATABASE_URL: postgres://ci:ci@localhost:5432/ci

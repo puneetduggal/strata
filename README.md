@@ -1,8 +1,12 @@
 # Strata — Documents → Queryable Knowledge Graph
 
+[![CI](https://github.com/puneetduggal/strata/actions/workflows/ci.yml/badge.svg)](https://github.com/puneetduggal/strata/actions/workflows/ci.yml)
+
 Strata turns a pile of messy technical documents (PRDs, design docs, ADRs, implementation
 plans, load-test reports) into a **queryable knowledge graph** where every node, edge, and
 answer cites the exact source span it came from.
+
+> 📄 **Product doc / design spec:** [Strata — Auto-Structuring Document Knowledge Graph](https://app.notion.com/p/Strata-Auto-Structuring-Document-Knowledge-Graph-Design-Spec-38585936d1ef817d8a4ddb5a10ba5106)
 
 Most "document → structured data" tools flatten each file into a row of fields. The real value
 in technical documents is the **relationships *between* them**: a PRD's requirement, the service
@@ -94,7 +98,8 @@ docs, a second graph package, a native graph DB, broker-based async, and auth �
                  │
                  ▼
    UI (Next.js App Router): upload · processing dashboard · graph/traceability view
-   with coverage gaps · doc viewer with highlighted spans · ask box · faceted entity table
+   with coverage gaps · doc viewer with highlighted spans · ask box (corpus-driven CQ
+   starter chips via `GET /api/suggestions`) · faceted entity table
 ```
 
 ### Where the code lives
@@ -107,10 +112,10 @@ docs, a second graph package, a native graph DB, broker-based async, and auth �
 | Embeddings | `lib/embed/voyage.ts` | Voyage `voyage-3`, 1024-dim (raw `fetch` + retry) |
 | LLM | `lib/llm/claude.ts` | `claude-opus-4-8` structured outputs + `narrate` |
 | Entity linking | `lib/search/entity-index.ts` | hybrid: trigram (`word_similarity`) + pgvector cosine, fused by Reciprocal Rank Fusion |
-| Query | `lib/query/{templates,router,graph}.ts` | 10 CQ SQL templates (cycle-safe recursive CTEs), intent router, graph/table data layers |
+| Query | `lib/query/{templates,router,graph,suggestions}.ts` | 10 CQ SQL templates (cycle-safe recursive CTEs), intent router, graph/table data layers, corpus-driven Ask starter questions |
 | Provenance | `lib/provenance/locate.ts`, `lib/doc/highlight.ts` | span grounding + doc-viewer highlighting |
 | Graph integrity | `lib/graph/integrity.ts` | polymorphic-edge integrity invariant |
-| UI / API | `app/` | Next.js 15 App Router UI + `app/api/{ingest,process,status,query,ask}` routes |
+| UI / API | `app/` | Next.js 15 App Router UI + `app/api/{ingest,process,status,query,ask,suggestions}` routes |
 
 ### Stack
 

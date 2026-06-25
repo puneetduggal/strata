@@ -2,7 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { TopBar } from "@/components/shell/top-bar";
-import AskBox, { type AskResult } from "@/components/ask-box";
+import AskBox, { type AskResult, type Suggestion } from "@/components/ask-box";
+
+// Shown before /api/suggestions resolves and as the fallback when the graph is empty / the fetch
+// fails. Only the two entity-free coverage-gap CQs — never references a specific (possibly stale)
+// entity, so it can't reintroduce the "questions about a previous corpus" bug.
+const FALLBACK_SUGGESTIONS: Suggestion[] = [
+  {
+    id: "Q1",
+    group: "gaps",
+    label: "Which requirements have no test?",
+    question: "Which requirements have no verifying test?",
+  },
+  {
+    id: "Q2",
+    group: "gaps",
+    label: "Which services lack a design doc or load test?",
+    question: "Which services have no design doc / no load test?",
+  },
+];
 
 // Strip the file extension so a documentId resolves to a catalog-style short-name
 // (HLD.txt → HLD, HLD-auth.txt → HLD-auth) — matches the table/doc/graph short-name.
@@ -31,6 +49,26 @@ export default function AskPage() {
       .then((r) => (r.ok ? r.json() : { docs: [] }))
       .then((b: { docs: { id: number; filename: string }[] }) => {
         if (!cancelled) setDocNames(new Map(b.docs.map((d) => [d.id, shortName(d.filename)])));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Starter-question chips, derived from the CURRENT graph (/api/suggestions). Falls back to the
+  // entity-free gap questions until it resolves, or if the graph is empty / the fetch fails. The
+  // same call returns a small sample of current service names for the entity-linking explainer.
+  const [suggestions, setSuggestions] = useState<Suggestion[]>(FALLBACK_SUGGESTIONS);
+  const [services, setServices] = useState<string[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/suggestions")
+      .then((r) => (r.ok ? r.json() : { suggestions: [], services: [] }))
+      .then((b: { suggestions: Suggestion[]; services?: string[] }) => {
+        if (cancelled) return;
+        if (b.suggestions?.length) setSuggestions(b.suggestions);
+        if (b.services?.length) setServices(b.services);
       })
       .catch(() => {});
     return () => {
@@ -83,6 +121,7 @@ export default function AskPage() {
           error={error}
           result={result}
           activeCQ={activeCQ}
+          suggestions={suggestions}
           onQuestionChange={(q) => {
             setQuestion(q);
             setActiveCQ(null);
@@ -91,18 +130,18 @@ export default function AskPage() {
           onSelectCQ={selectCQ}
           docNames={docNames}
         />
-        {result && <RightPanel result={result} />}
+        {result && <RightPanel result={result} services={services} />}
       </div>
     </>
   );
 }
 
 // §4 right panel — renders only once an answer exists.
-function RightPanel({ result }: { result: AskResult }) {
+function RightPanel({ result, services }: { result: AskResult; services: string[] }) {
   return (
     <aside className="flex w-[300px] flex-none flex-col gap-[18px] border-l border-border bg-surface p-[18px]">
       <RouterLadder tier={result.tier} />
-      <EntityLinking />
+      <EntityLinking services={services} />
     </aside>
   );
 }
@@ -154,27 +193,32 @@ function RouterLadder({ tier }: { tier: "template" | "rag" }) {
 }
 
 // §4b entity-linking / disambiguation box. The API exposes no resolved-mention metadata on the
-// result, so this renders the catalog's static explainer (the hybrid-retrieval disambiguation UI
-// Strata shows when a mention is ambiguous).
-function EntityLinking() {
+// result, so this is an explainer of the hybrid-retrieval disambiguation UI (the "did you mean…"
+// Strata shows when a mention is ambiguous). The example names are drawn from the CURRENT corpus
+// (most-connected services from /api/suggestions) so it never shows a previous doc set's entities;
+// the match scores are illustrative of the mechanism, not from this answer.
+function EntityLinking({ services }: { services: string[] }) {
+  const primary = services[0] ?? "your-service";
+  const alt = services[1] ?? "another-service";
   return (
     <div className="rounded-[11px] border border-border bg-surface-2 p-[13px]">
       <div className="mb-[8px] font-mono text-[10px] uppercase tracking-[.05em] text-text-3">
         Entity linking
       </div>
       <p className="mb-[10px] text-[12px] leading-[1.5] text-text-2">
-        “token-service” matched <span className="font-semibold text-text">1 entity</span> via
+        “{primary}” matched <span className="font-semibold text-text">1 entity</span> via
         pgvector + trigram (RRF). When ambiguous, Strata asks:
       </p>
       <p className="mb-[8px] text-[11.5px] text-text">Did you mean…</p>
       <div className="flex flex-col gap-[6px]">
         <div className="rounded-[8px] border border-accent-line bg-surface p-[7px_10px] font-mono text-[11.5px] font-medium text-accent">
-          token-service<span className="font-normal text-text-3"> · 0.94</span>
+          {primary}<span className="font-normal text-text-3"> · 0.94</span>
         </div>
         <div className="rounded-[8px] border border-border bg-surface p-[7px_10px] font-mono text-[11.5px] text-text-2">
-          auth-service<span className="text-text-3"> · 0.41</span>
+          {alt}<span className="text-text-3"> · 0.41</span>
         </div>
       </div>
+      <p className="mt-[8px] font-mono text-[9.5px] text-text-3">scores illustrative</p>
     </div>
   );
 }

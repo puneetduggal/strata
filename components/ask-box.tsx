@@ -2,9 +2,10 @@
 
 import { SOFTWARE_PACKAGE } from "@/lib/packages/software";
 import { buildInlinePath, nodeKey, nodeLabel, type EdgeRef } from "@/lib/query/ask-path";
+import type { Suggestion } from "@/lib/query/suggestions";
 
 export { buildInlinePath };
-export type { EdgeRef };
+export type { EdgeRef, Suggestion };
 
 // Task 18 (reskin: catalog 04) — the ask conversation column.
 // Posts a question to /api/ask and renders the cited, tiered answer. The router returns one of
@@ -51,31 +52,32 @@ function docName(docNames: Map<number, string>, documentId: number): string {
 // ---------------------------------------------------------------------------
 // Grouped competency-question chips (catalog §3b).
 //
-// The 10 CQs are bucketed under the catalog's category labels. Label color per category:
-//   gaps → --gap, impact → --accent, lookup/trace/reconcile/rationale → --e-service.
-// The verbatim catalog example strings are used as the chip face where they map cleanly to a CQ;
-// otherwise the CQ's own `question` text is shown. Clicking a chip fills + submits that CQ.
+// The chips are now corpus-driven: `/api/suggestions` inspects the CURRENT graph and returns
+// ready-to-render { id, group, label, question } entries with real entity names, so a parameterized
+// chip submits a question the router can resolve (token-service etc. are no longer hard-coded). This
+// component only renders them, grouping by `group` in arrival order. Category label color:
+//   gaps → --gap, impact → --accent, lookup → --e-service.
+// Clicking a chip fills + submits that suggestion's question.
 // ---------------------------------------------------------------------------
-const CQ_LABEL: Record<string, string> = {
-  Q1: "Which requirements have no test?",
-  Q2: "Services with no load test?",
-  Q3: "What breaks if token-service changes?",
-  Q9: "Blast radius of User Auth?",
-  Q10: "How does Service X depend on Z?",
-  Q4: "PRD→LLD→impl→load-test chain?",
-  Q5: "What datastore does Service X use?",
-  Q8: "Who owns auth-service?",
-  Q6: "Did the load test meet target?",
-  Q7: "What decisions affected Service X?",
+const GROUP_COLOR: Record<string, string> = {
+  gaps: "var(--gap)",
+  impact: "var(--accent)",
+  lookup: "var(--e-service)",
 };
 
-const CQ_GROUPS: { label: string; color: string; ids: string[] }[] = [
-  { label: "gaps", color: "var(--gap)", ids: ["Q1", "Q2"] },
-  { label: "impact", color: "var(--accent)", ids: ["Q3", "Q9", "Q10"] },
-  { label: "lookup", color: "var(--e-service)", ids: ["Q5", "Q8", "Q4", "Q6", "Q7"] },
-];
-
-const CQ_BY_ID = Object.fromEntries(SOFTWARE_PACKAGE.competencyQuestions.map((c) => [c.id, c]));
+// Bucket suggestions by group, preserving first-seen group order and within-group order.
+function groupSuggestions(suggestions: Suggestion[]): { name: string; items: Suggestion[] }[] {
+  const groups: { name: string; items: Suggestion[] }[] = [];
+  for (const s of suggestions) {
+    let g = groups.find((x) => x.name === s.group);
+    if (!g) {
+      g = { name: s.group, items: [] };
+      groups.push(g);
+    }
+    g.items.push(s);
+  }
+  return groups;
+}
 
 export default function AskBox({
   question,
@@ -83,6 +85,7 @@ export default function AskBox({
   error,
   result,
   activeCQ,
+  suggestions,
   onQuestionChange,
   onSubmit,
   onSelectCQ,
@@ -93,11 +96,18 @@ export default function AskBox({
   error: string | null;
   result: AskResult | null;
   activeCQ: string | null;
+  suggestions: Suggestion[];
   onQuestionChange: (q: string) => void;
   onSubmit: () => void;
   onSelectCQ: (id: string, question: string) => void;
   docNames: Map<number, string>;
 }) {
+  // Placeholder mirrors the blast-radius (impact) suggestion when one exists, so the example in the
+  // input is also grounded in the current corpus; neutral fallback before suggestions load / empty graph.
+  const placeholder =
+    suggestions.find((s) => s.id === "Q3")?.question ??
+    "Ask about a service, feature, or requirement…";
+  const groups = groupSuggestions(suggestions);
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-[24px_30px]">
       {/* §3a input row */}
@@ -113,7 +123,7 @@ export default function AskBox({
           <input
             value={question}
             onChange={(e) => onQuestionChange(e.target.value)}
-            placeholder="What depends on the token-service — what breaks if it changes?"
+            placeholder={placeholder}
             className="min-w-0 flex-1 bg-transparent text-[13.5px] text-text outline-none placeholder:text-text-3"
           />
         </div>
@@ -127,34 +137,32 @@ export default function AskBox({
         </button>
       </form>
 
-      {/* §3b grouped CQ chips */}
+      {/* §3b grouped CQ chips — corpus-driven (see groupSuggestions / /api/suggestions) */}
       <div className="mb-[18px] flex flex-col gap-[9px]">
-        {CQ_GROUPS.map((g) => (
-          <div key={g.label} className="flex items-center gap-[9px]">
+        {groups.map((g) => (
+          <div key={g.name} className="flex items-center gap-[9px]">
             <span
               className="w-[64px] flex-none font-mono text-[9.5px] uppercase tracking-[.05em]"
-              style={{ color: g.color }}
+              style={{ color: GROUP_COLOR[g.name] ?? "var(--text-3)" }}
             >
-              {g.label}
+              {g.name}
             </span>
             <div className="flex flex-wrap items-center gap-[9px]">
-              {g.ids.map((id) => {
-                const cq = CQ_BY_ID[id];
-                if (!cq) return null;
-                const selected = activeCQ === id;
+              {g.items.map((s) => {
+                const selected = activeCQ === s.id;
                 return (
                   <button
-                    key={id}
+                    key={s.id}
                     type="button"
-                    title={cq.question}
-                    onClick={() => onSelectCQ(id, cq.question)}
+                    title={s.question}
+                    onClick={() => onSelectCQ(s.id, s.question)}
                     className={`rounded-[7px] border px-[10px] py-[5px] text-[11.5px] ${
                       selected
                         ? "border-accent-line bg-accent-soft font-medium text-accent"
                         : "border-border bg-surface-2 text-text-2"
                     }`}
                   >
-                    {CQ_LABEL[id] ?? cq.question}
+                    {s.label}
                   </button>
                 );
               })}
@@ -172,7 +180,9 @@ export default function AskBox({
         </p>
       )}
 
-      {result && <AnswerCard result={result} question={question} docNames={docNames} />}
+      {result && (
+        <AnswerCard result={result} question={question} activeCQ={activeCQ} docNames={docNames} />
+      )}
     </div>
   );
 }
@@ -183,10 +193,12 @@ export default function AskBox({
 function AnswerCard({
   result,
   question,
+  activeCQ,
   docNames,
 }: {
   result: AskResult;
   question: string;
+  activeCQ: string | null;
   docNames: Map<number, string>;
 }) {
   const isTemplate = result.tier === "template";
@@ -194,8 +206,12 @@ function AnswerCard({
   const chunks = !isTemplate ? (result.provenance.filter((p) => !isEdgeRef(p)) as ChunkRef[]) : [];
   const path = isTemplate ? buildInlinePath(edges) : null;
 
-  // Method-meta string: the active CQ's template name (best-effort match by question text).
-  const cq = SOFTWARE_PACKAGE.competencyQuestions.find((c) => c.question === question);
+  // Method-meta string: the active CQ's template name. A clicked chip submits a corpus-specific
+  // question (so an exact question-text match no longer works) — resolve by the chip's CQ id when
+  // present, falling back to a question-text match for free-typed questions.
+  const cq = activeCQ
+    ? SOFTWARE_PACKAGE.competencyQuestions.find((c) => c.id === activeCQ)
+    : SOFTWARE_PACKAGE.competencyQuestions.find((c) => c.question === question);
   const method = isTemplate
     ? cq
       ? `${cq.template} · deterministic SQL`

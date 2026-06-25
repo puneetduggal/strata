@@ -45,6 +45,10 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
+      # test/meridian-pdf.test.ts renders a PDF via Playwright Chromium.
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
       # Mirrors the documented local setup: extensions BEFORE migrate, HNSW/GIN indexes AFTER.
       - name: Database schema
         run: |

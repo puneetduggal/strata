@@ -20,7 +20,7 @@ jobs:
           version: 11 # match local pnpm; the repo's pnpm-workspace.yaml uses pnpm 10+ keys (onlyBuiltDependencies/allowBuilds)
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22 # pnpm 11 requires Node >= 22.13 (uses node:sqlite); project requires >= 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Typecheck
